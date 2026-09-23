@@ -1,0 +1,83 @@
+[
+  {
+    "file": "test_invoice_01.pdf",
+    "template": "classic_table",
+    "vendor_id": "acme_supplies",
+    "reference_values": {
+      "vendor_name": "Acme Industrial Supplies",
+      "invoice_number": "INV-2024004",
+      "invoice_date": "2026-09-09",
+      "due_date": "2026-10-09",
+      "line_items": [
+        {
+          "description": "Warehouse pallet storage",
+          "quantity": 5.0,
+          "unit_price": 20.32,
+          "line_total": 101.6
+        }
+      ],
+      "subtotal": 101.6,
+      "tax": 7.37,
+      "total_due": 108.97,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "test_invoice_02.pdf",
+    "template": "modern_minimal",
+    "vendor_id": "vertex_hardware",
+    "reference_values": {
+      "vendor_name": "Vertex Hardware Distribution",
+      "invoice_number": "INV-2024011",
+      "invoice_date": "2026-05-30",
+      "due_date": "2026-06-14",
+      "line_items": [
+        {
+          "description": "Consulting services - project manager",
+          "quantity": 6.0,
+          "unit_price": 127.93,
+          "line_total": 767.58
+        },
+        {
+          "description": "Office chair, ergonomic",
+          "quantity": 12.0,
+          "unit_price": 200.33,
+          "line_total": 2403.96
+        },
+        {
+          "description": "Freight & handling",
+          "quantity": 1.0,
+          "unit_price": 80.13,
+          "line_total": 80.13
+        }
+      ],
+      "subtotal": 3251.67,
+      "tax": 263.39,
+      "total_due": 3515.06,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "test_invoice_03.pdf",
+    "template": "compact",
+    "vendor_id": "meridian_it_services",
+    "reference_values": {
+      "vendor_name": "Meridian IT Services",
+      "invoice_number": "INV-2024019",
+      "invoice_date": "2026-09-07",
+      "due_date": "2026-09-22",
+      "line_items": [
+        {
+          "description": "Software license - annual seat",
+          "quantity": 24.0,
+          "unit_price": 198.73,
+          "line_total": 4769.52
+        }
+      ],
+      "subtotal": 4769.52,
+      "tax": 0.0,
+      "total_due": 4769.52,
+      "currency": "USD"
+    }
+  }
+]

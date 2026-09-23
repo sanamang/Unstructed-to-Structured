@@ -206,6 +206,52 @@ def generate_dataset(count: int, seed: int, output_dir: Path) -> list[dict]:
     return manifest
 
 
+def generate_manual_test_pdfs(count: int, seed: int, output_dir: Path) -> list[dict]:
+    """Generate a small set of plain, clean invoice PDFs (no deliberate data
+    issues, no scan degradation) for ad hoc manual testing of the ingestion/
+    extraction pipeline outside of the eval fixture set in sample_data/.
+    Still writes a reference JSON per PDF so you can eyeball whether the
+    pipeline's output matches, but these aren't wired into the eval script.
+    """
+    rng = random.Random(seed)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    manifest = []
+    for i in range(count):
+        plan = PlannedInvoice(
+            index=i,
+            template_name=TEMPLATE_NAMES[i % len(TEMPLATE_NAMES)],
+            vendor=rng.choice(VENDORS),
+            customer=rng.choice(CUSTOMERS),
+            deliberate_issues=[],
+            is_scanned_simulation=False,
+        )
+        inv_data = _build_invoice_data(plan, rng)
+        file_name = f"test_invoice_{i + 1:02d}.pdf"
+        render_invoice_pdf(str(output_dir / file_name), inv_data, plan.template_name)
+
+        record = {
+            "file": file_name,
+            "template": plan.template_name,
+            "vendor_id": plan.vendor["id"],
+            "reference_values": {
+                "vendor_name": inv_data["vendor_name"],
+                "invoice_number": inv_data["invoice_number"],
+                "invoice_date": inv_data["invoice_date"],
+                "due_date": inv_data["due_date"],
+                "line_items": inv_data["line_items"],
+                "subtotal": inv_data["subtotal"],
+                "tax": inv_data["tax"],
+                "total_due": inv_data["total_due"],
+                "currency": inv_data["currency"],
+            },
+        }
+        manifest.append(record)
+
+    (output_dir / "reference_values.json").write_text(json.dumps(manifest, indent=2))
+    return manifest
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate synthetic sample invoices + ground truth.")
     parser.add_argument("--count", type=int, default=25)
