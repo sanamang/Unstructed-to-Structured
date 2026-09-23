@@ -1,0 +1,46 @@
+{
+  "file": "invoices/invoice_021.pdf",
+  "doc_type": "invoice",
+  "template": "classic_table",
+  "vendor_id": "brightline_consulting",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "missing_field"
+  ],
+  "ground_truth": {
+    "vendor_name": "Brightline Consulting Group",
+    "invoice_number": "INV-2024153",
+    "invoice_date": "2026-06-05",
+    "due_date": null,
+    "line_items": [
+      {
+        "description": "On-site training session",
+        "quantity": 1.0,
+        "unit_price": 1003.29,
+        "line_total": 1003.29
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": 1.0,
+        "unit_price": 95.97,
+        "line_total": 95.97
+      },
+      {
+        "description": "Printer toner cartridge, black",
+        "quantity": 7.0,
+        "unit_price": 38.48,
+        "line_total": 269.36
+      },
+      {
+        "description": "Office chair, ergonomic",
+        "quantity": 12.0,
+        "unit_price": 231.71,
+        "line_total": 2780.52
+      }
+    ],
+    "subtotal": 4149.14,
+    "tax": 0.0,
+    "total_due": 4149.14,
+    "currency": "USD"
+  }
+}

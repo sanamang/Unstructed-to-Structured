@@ -1,0 +1,28 @@
+{
+  "file": "invoices/invoice_006.pdf",
+  "doc_type": "invoice",
+  "template": "compact",
+  "vendor_id": "brightline_consulting",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "math_error"
+  ],
+  "ground_truth": {
+    "vendor_name": "Brightline Consulting Group",
+    "invoice_number": "INV-2024047",
+    "invoice_date": "2026-07-20",
+    "due_date": "2026-08-19",
+    "line_items": [
+      {
+        "description": "Consulting services - project manager",
+        "quantity": 6.0,
+        "unit_price": 114.45,
+        "line_total": 686.7
+      }
+    ],
+    "subtotal": 686.7,
+    "tax": 0.0,
+    "total_due": 660.52,
+    "currency": "USD"
+  }
+}

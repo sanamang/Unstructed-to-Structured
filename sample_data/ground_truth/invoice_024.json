@@ -1,0 +1,50 @@
+{
+  "file": "invoices/invoice_024.pdf",
+  "doc_type": "invoice",
+  "template": "modern_minimal",
+  "vendor_id": "solstice_marketing",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Solstice Marketing Partners",
+    "invoice_number": "INV-2024171",
+    "invoice_date": "2026-05-11",
+    "due_date": "2026-05-26",
+    "line_items": [
+      {
+        "description": "Software license - annual seat",
+        "quantity": 19.0,
+        "unit_price": 221.24,
+        "line_total": 4203.56
+      },
+      {
+        "description": "Consulting services - senior engineer",
+        "quantity": 5.0,
+        "unit_price": 136.26,
+        "line_total": 681.3
+      },
+      {
+        "description": "Widget assembly, model B-7",
+        "quantity": 10.0,
+        "unit_price": 6.72,
+        "line_total": 67.2
+      },
+      {
+        "description": "Network switch, 24-port",
+        "quantity": 12.0,
+        "unit_price": 284.35,
+        "line_total": 3412.2
+      },
+      {
+        "description": "Office chair, ergonomic",
+        "quantity": 7.0,
+        "unit_price": 217.01,
+        "line_total": 1519.07
+      }
+    ],
+    "subtotal": 9883.33,
+    "tax": 0.0,
+    "total_due": 9883.33,
+    "currency": "USD"
+  }
+}

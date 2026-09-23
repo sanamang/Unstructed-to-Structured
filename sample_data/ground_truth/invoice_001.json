@@ -1,0 +1,56 @@
+{
+  "file": "invoices/invoice_001.pdf",
+  "doc_type": "invoice",
+  "template": "classic_table",
+  "vendor_id": "brightline_consulting",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Brightline Consulting Group",
+    "invoice_number": "INV-2024012",
+    "invoice_date": "2026-05-25",
+    "due_date": "2026-06-09",
+    "line_items": [
+      {
+        "description": "Warehouse pallet storage",
+        "quantity": 5.0,
+        "unit_price": 24.5,
+        "line_total": 122.5
+      },
+      {
+        "description": "Widget assembly, model A-12",
+        "quantity": 1.0,
+        "unit_price": 4.46,
+        "line_total": 4.46
+      },
+      {
+        "description": "Print run - business cards (500ct)",
+        "quantity": 2.0,
+        "unit_price": 39.9,
+        "line_total": 79.8
+      },
+      {
+        "description": "Replacement HVAC filter",
+        "quantity": 9.0,
+        "unit_price": 15.71,
+        "line_total": 141.39
+      },
+      {
+        "description": "Custom bracket, stainless steel",
+        "quantity": 11.0,
+        "unit_price": 11.11,
+        "line_total": 122.21
+      },
+      {
+        "description": "Network switch, 24-port",
+        "quantity": 5.0,
+        "unit_price": 263.85,
+        "line_total": 1319.25
+      }
+    ],
+    "subtotal": 1789.61,
+    "tax": 0.0,
+    "total_due": 1789.61,
+    "currency": "USD"
+  }
+}

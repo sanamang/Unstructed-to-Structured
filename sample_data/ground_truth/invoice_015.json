@@ -1,0 +1,52 @@
+{
+  "file": "invoices/invoice_015.pdf",
+  "doc_type": "invoice",
+  "template": "classic_table",
+  "vendor_id": "granite_office_supply",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "bad_due_date"
+  ],
+  "ground_truth": {
+    "vendor_name": "Granite Office Supply Co.",
+    "invoice_number": "INV-2024105",
+    "invoice_date": "2026-03-10",
+    "due_date": "2026-02-23",
+    "line_items": [
+      {
+        "description": "Widget assembly, model A-12",
+        "quantity": 4.0,
+        "unit_price": 4.45,
+        "line_total": 17.8
+      },
+      {
+        "description": "Warehouse pallet storage",
+        "quantity": 6.0,
+        "unit_price": 20.96,
+        "line_total": 125.76
+      },
+      {
+        "description": "IT support retainer",
+        "quantity": 1.0,
+        "unit_price": 789.66,
+        "line_total": 789.66
+      },
+      {
+        "description": "Software license - annual seat",
+        "quantity": 22.0,
+        "unit_price": 207.36,
+        "line_total": 4561.92
+      },
+      {
+        "description": "Network switch, 24-port",
+        "quantity": 8.0,
+        "unit_price": 256.93,
+        "line_total": 2055.44
+      }
+    ],
+    "subtotal": 7550.58,
+    "tax": 471.91,
+    "total_due": 8022.49,
+    "currency": "USD"
+  }
+}

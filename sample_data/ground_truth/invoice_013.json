@@ -1,0 +1,38 @@
+{
+  "file": "invoices/invoice_013.pdf",
+  "doc_type": "invoice",
+  "template": "compact",
+  "vendor_id": "pixel_forge_studio",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Pixel Forge Studio",
+    "invoice_number": "INV-2024097",
+    "invoice_date": "2026-05-11",
+    "due_date": "2026-05-26",
+    "line_items": [
+      {
+        "description": "Consulting services - project manager",
+        "quantity": 9.0,
+        "unit_price": 137.78,
+        "line_total": 1240.02
+      },
+      {
+        "description": "On-site training session",
+        "quantity": 1.0,
+        "unit_price": 915.16,
+        "line_total": 915.16
+      },
+      {
+        "description": "Marketing campaign management",
+        "quantity": 1.0,
+        "unit_price": 1095.02,
+        "line_total": 1095.02
+      }
+    ],
+    "subtotal": 3250.2,
+    "tax": 650.04,
+    "total_due": 3900.24,
+    "currency": "EUR"
+  }
+}

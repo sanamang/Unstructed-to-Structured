@@ -1,0 +1,32 @@
+{
+  "file": "invoices/invoice_017_scan.jpg",
+  "doc_type": "invoice",
+  "template": "modern_minimal",
+  "vendor_id": "pixel_forge_studio",
+  "is_scanned_simulation": true,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Pixel Forge Studio",
+    "invoice_number": "INV-2024124",
+    "invoice_date": "2026-04-17",
+    "due_date": "2026-05-02",
+    "line_items": [
+      {
+        "description": "Network switch, 24-port",
+        "quantity": 2.0,
+        "unit_price": 281.78,
+        "line_total": 563.56
+      },
+      {
+        "description": "Widget assembly, model B-7",
+        "quantity": 3.0,
+        "unit_price": 6.48,
+        "line_total": 19.44
+      }
+    ],
+    "subtotal": 583.0,
+    "tax": 116.6,
+    "total_due": 699.6,
+    "currency": "EUR"
+  }
+}

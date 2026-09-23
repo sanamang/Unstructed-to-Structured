@@ -1,0 +1,28 @@
+{
+  "file": "invoices/invoice_011.pdf",
+  "doc_type": "invoice",
+  "template": "modern_minimal",
+  "vendor_id": "northwind_traders",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "missing_field"
+  ],
+  "ground_truth": {
+    "vendor_name": "Northwind Traders Ltd.",
+    "invoice_number": "INV-2024080",
+    "invoice_date": "2026-05-25",
+    "due_date": "2026-06-24",
+    "line_items": [
+      {
+        "description": "Print run - business cards (500ct)",
+        "quantity": 5.0,
+        "unit_price": 41.95,
+        "line_total": 209.75
+      }
+    ],
+    "subtotal": 209.75,
+    "tax": null,
+    "total_due": 251.7,
+    "currency": "GBP"
+  }
+}

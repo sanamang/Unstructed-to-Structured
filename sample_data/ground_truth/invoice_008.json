@@ -1,0 +1,26 @@
+{
+  "file": "invoices/invoice_008_scan.jpg",
+  "doc_type": "invoice",
+  "template": "classic_table",
+  "vendor_id": "copperfield_print",
+  "is_scanned_simulation": true,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Copperfield Print & Design",
+    "invoice_number": "INV-2024059",
+    "invoice_date": "2026-05-27",
+    "due_date": "2026-06-11",
+    "line_items": [
+      {
+        "description": "Printer toner cartridge, black",
+        "quantity": 4.0,
+        "unit_price": 40.03,
+        "line_total": 160.12
+      }
+    ],
+    "subtotal": 160.12,
+    "tax": 20.82,
+    "total_due": 180.94,
+    "currency": "USD"
+  }
+}

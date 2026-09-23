@@ -1,0 +1,40 @@
+{
+  "file": "invoices/invoice_009.pdf",
+  "doc_type": "invoice",
+  "template": "compact",
+  "vendor_id": "brightline_consulting",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "bad_due_date"
+  ],
+  "ground_truth": {
+    "vendor_name": "Brightline Consulting Group",
+    "invoice_number": "INV-2024069",
+    "invoice_date": "2026-09-15",
+    "due_date": "2026-09-07",
+    "line_items": [
+      {
+        "description": "Custom bracket, stainless steel",
+        "quantity": 8.0,
+        "unit_price": 12.29,
+        "line_total": 98.32
+      },
+      {
+        "description": "Printer toner cartridge, black",
+        "quantity": 9.0,
+        "unit_price": 39.17,
+        "line_total": 352.53
+      },
+      {
+        "description": "Widget assembly, model A-12",
+        "quantity": 11.0,
+        "unit_price": 4.76,
+        "line_total": 52.36
+      }
+    ],
+    "subtotal": 503.21,
+    "tax": 0.0,
+    "total_due": 503.21,
+    "currency": "USD"
+  }
+}

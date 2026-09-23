@@ -1,0 +1,56 @@
+{
+  "file": "invoices/invoice_002.pdf",
+  "doc_type": "invoice",
+  "template": "compact",
+  "vendor_id": "vertex_hardware",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Vertex Hardware Distribution",
+    "invoice_number": "INV-2024017",
+    "invoice_date": "2026-04-18",
+    "due_date": "2026-05-18",
+    "line_items": [
+      {
+        "description": "Network switch, 24-port",
+        "quantity": 11.0,
+        "unit_price": 255.9,
+        "line_total": 2814.9
+      },
+      {
+        "description": "IT support retainer",
+        "quantity": 1.0,
+        "unit_price": 832.46,
+        "line_total": 832.46
+      },
+      {
+        "description": "Office chair, ergonomic",
+        "quantity": 10.0,
+        "unit_price": 198.19,
+        "line_total": 1981.9
+      },
+      {
+        "description": "Safety goggles, bulk pack",
+        "quantity": 6.0,
+        "unit_price": 3.31,
+        "line_total": 19.86
+      },
+      {
+        "description": "Widget assembly, model B-7",
+        "quantity": 9.0,
+        "unit_price": 7.49,
+        "line_total": 67.41
+      },
+      {
+        "description": "Warehouse pallet storage",
+        "quantity": 9.0,
+        "unit_price": 24.25,
+        "line_total": 218.25
+      }
+    ],
+    "subtotal": 5934.78,
+    "tax": 480.72,
+    "total_due": 6415.5,
+    "currency": "USD"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "file": "invoices/invoice_020.pdf",
+  "doc_type": "invoice",
+  "template": "compact",
+  "vendor_id": "solstice_marketing",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Solstice Marketing Partners",
+    "invoice_number": "INV-2024146",
+    "invoice_date": "2026-06-20",
+    "due_date": "2026-08-04",
+    "line_items": [
+      {
+        "description": "Consulting services - project manager",
+        "quantity": 3.0,
+        "unit_price": 113.65,
+        "line_total": 340.95
+      },
+      {
+        "description": "Graphic design - logo package",
+        "quantity": 1.0,
+        "unit_price": 637.15,
+        "line_total": 637.15
+      },
+      {
+        "description": "Replacement HVAC filter",
+        "quantity": 1.0,
+        "unit_price": 16.19,
+        "line_total": 16.19
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": 1.0,
+        "unit_price": 84.21,
+        "line_total": 84.21
+      },
+      {
+        "description": "Warehouse pallet storage",
+        "quantity": 4.0,
+        "unit_price": 23.03,
+        "line_total": 92.12
+      }
+    ],
+    "subtotal": 1170.62,
+    "tax": 0.0,
+    "total_due": 1170.62,
+    "currency": "USD"
+  }
+}

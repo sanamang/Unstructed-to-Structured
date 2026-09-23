@@ -1,0 +1,52 @@
+{
+  "file": "invoices/invoice_016.pdf",
+  "doc_type": "invoice",
+  "template": "classic_table",
+  "vendor_id": "brightline_consulting",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "math_error"
+  ],
+  "ground_truth": {
+    "vendor_name": "Brightline Consulting Group",
+    "invoice_number": "INV-2024112",
+    "invoice_date": "2026-04-04",
+    "due_date": "2026-05-19",
+    "line_items": [
+      {
+        "description": "Safety goggles, bulk pack",
+        "quantity": 3.0,
+        "unit_price": 3.43,
+        "line_total": 10.29
+      },
+      {
+        "description": "Widget assembly, model B-7",
+        "quantity": 2.0,
+        "unit_price": 7.38,
+        "line_total": 14.76
+      },
+      {
+        "description": "Widget assembly, model A-12",
+        "quantity": 6.0,
+        "unit_price": 4.09,
+        "line_total": 24.54
+      },
+      {
+        "description": "Standing desk, adjustable",
+        "quantity": 8.0,
+        "unit_price": 368.36,
+        "line_total": 2946.88
+      },
+      {
+        "description": "Network switch, 24-port",
+        "quantity": 12.0,
+        "unit_price": 256.14,
+        "line_total": 3073.68
+      }
+    ],
+    "subtotal": 6070.15,
+    "tax": 0.0,
+    "total_due": 6031.98,
+    "currency": "USD"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "file": "invoices/invoice_022.pdf",
+  "doc_type": "invoice",
+  "template": "modern_minimal",
+  "vendor_id": "cobalt_logistics",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "math_error"
+  ],
+  "ground_truth": {
+    "vendor_name": "Cobalt Logistics & Freight",
+    "invoice_number": "INV-2024154",
+    "invoice_date": "2026-07-22",
+    "due_date": "2026-08-06",
+    "line_items": [
+      {
+        "description": "Office chair, ergonomic",
+        "quantity": 1.0,
+        "unit_price": 228.67,
+        "line_total": 228.67
+      },
+      {
+        "description": "Widget assembly, model B-7",
+        "quantity": 4.0,
+        "unit_price": 6.37,
+        "line_total": 25.48
+      },
+      {
+        "description": "Print run - business cards (500ct)",
+        "quantity": 8.0,
+        "unit_price": 37.12,
+        "line_total": 296.96
+      }
+    ],
+    "subtotal": 580.88,
+    "tax": 48.22,
+    "total_due": 629.1,
+    "currency": "USD"
+  }
+}

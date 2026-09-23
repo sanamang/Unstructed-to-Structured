@@ -1,0 +1,1016 @@
+[
+  {
+    "file": "invoices/invoice_000.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "brightline_consulting",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "missing_field"
+    ],
+    "ground_truth": {
+      "vendor_name": "Brightline Consulting Group",
+      "invoice_number": "INV-2024005",
+      "invoice_date": "2026-08-21",
+      "due_date": null,
+      "line_items": [
+        {
+          "description": "IT support retainer",
+          "quantity": 1.0,
+          "unit_price": 736.0,
+          "line_total": 736.0
+        },
+        {
+          "description": "Marketing campaign management",
+          "quantity": 1.0,
+          "unit_price": 1092.44,
+          "line_total": 1092.44
+        }
+      ],
+      "subtotal": 1828.44,
+      "tax": 0.0,
+      "total_due": 1828.44,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_001.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "brightline_consulting",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Brightline Consulting Group",
+      "invoice_number": "INV-2024012",
+      "invoice_date": "2026-05-25",
+      "due_date": "2026-06-09",
+      "line_items": [
+        {
+          "description": "Warehouse pallet storage",
+          "quantity": 5.0,
+          "unit_price": 24.5,
+          "line_total": 122.5
+        },
+        {
+          "description": "Widget assembly, model A-12",
+          "quantity": 1.0,
+          "unit_price": 4.46,
+          "line_total": 4.46
+        },
+        {
+          "description": "Print run - business cards (500ct)",
+          "quantity": 2.0,
+          "unit_price": 39.9,
+          "line_total": 79.8
+        },
+        {
+          "description": "Replacement HVAC filter",
+          "quantity": 9.0,
+          "unit_price": 15.71,
+          "line_total": 141.39
+        },
+        {
+          "description": "Custom bracket, stainless steel",
+          "quantity": 11.0,
+          "unit_price": 11.11,
+          "line_total": 122.21
+        },
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 5.0,
+          "unit_price": 263.85,
+          "line_total": 1319.25
+        }
+      ],
+      "subtotal": 1789.61,
+      "tax": 0.0,
+      "total_due": 1789.61,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_002.pdf",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "vertex_hardware",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Vertex Hardware Distribution",
+      "invoice_number": "INV-2024017",
+      "invoice_date": "2026-04-18",
+      "due_date": "2026-05-18",
+      "line_items": [
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 11.0,
+          "unit_price": 255.9,
+          "line_total": 2814.9
+        },
+        {
+          "description": "IT support retainer",
+          "quantity": 1.0,
+          "unit_price": 832.46,
+          "line_total": 832.46
+        },
+        {
+          "description": "Office chair, ergonomic",
+          "quantity": 10.0,
+          "unit_price": 198.19,
+          "line_total": 1981.9
+        },
+        {
+          "description": "Safety goggles, bulk pack",
+          "quantity": 6.0,
+          "unit_price": 3.31,
+          "line_total": 19.86
+        },
+        {
+          "description": "Widget assembly, model B-7",
+          "quantity": 9.0,
+          "unit_price": 7.49,
+          "line_total": 67.41
+        },
+        {
+          "description": "Warehouse pallet storage",
+          "quantity": 9.0,
+          "unit_price": 24.25,
+          "line_total": 218.25
+        }
+      ],
+      "subtotal": 5934.78,
+      "tax": 480.72,
+      "total_due": 6415.5,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_003_scan.jpg",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "granite_office_supply",
+    "is_scanned_simulation": true,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Granite Office Supply Co.",
+      "invoice_number": "INV-2024021",
+      "invoice_date": "2026-07-02",
+      "due_date": "2026-07-17",
+      "line_items": [
+        {
+          "description": "Widget assembly, model B-7",
+          "quantity": 6.0,
+          "unit_price": 7.38,
+          "line_total": 44.28
+        }
+      ],
+      "subtotal": 44.28,
+      "tax": 2.77,
+      "total_due": 47.05,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_004.pdf",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "cobalt_logistics",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Cobalt Logistics & Freight",
+      "invoice_number": "INV-2024034",
+      "invoice_date": "2026-07-26",
+      "due_date": "2026-09-09",
+      "line_items": [
+        {
+          "description": "Widget assembly, model A-12",
+          "quantity": 3.0,
+          "unit_price": 4.44,
+          "line_total": 13.32
+        },
+        {
+          "description": "On-site training session",
+          "quantity": 1.0,
+          "unit_price": 997.48,
+          "line_total": 997.48
+        },
+        {
+          "description": "Marketing campaign management",
+          "quantity": 1.0,
+          "unit_price": 1123.59,
+          "line_total": 1123.59
+        },
+        {
+          "description": "Safety goggles, bulk pack",
+          "quantity": 9.0,
+          "unit_price": 3.38,
+          "line_total": 30.42
+        },
+        {
+          "description": "Freight & handling",
+          "quantity": 1.0,
+          "unit_price": 88.39,
+          "line_total": 88.39
+        }
+      ],
+      "subtotal": 2253.2,
+      "tax": 197.15,
+      "total_due": 2450.35,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_005.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "copperfield_print",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "bad_due_date"
+    ],
+    "ground_truth": {
+      "vendor_name": "Copperfield Print & Design",
+      "invoice_number": "INV-2024035",
+      "invoice_date": "2026-03-21",
+      "due_date": "2026-03-13",
+      "line_items": [
+        {
+          "description": "Standing desk, adjustable",
+          "quantity": 9.0,
+          "unit_price": 339.77,
+          "line_total": 3057.93
+        },
+        {
+          "description": "Cloud hosting - monthly",
+          "quantity": 1.0,
+          "unit_price": 458.18,
+          "line_total": 458.18
+        },
+        {
+          "description": "Print run - business cards (500ct)",
+          "quantity": 2.0,
+          "unit_price": 37.03,
+          "line_total": 74.06
+        },
+        {
+          "description": "Graphic design - logo package",
+          "quantity": 1.0,
+          "unit_price": 669.13,
+          "line_total": 669.13
+        },
+        {
+          "description": "Custom bracket, stainless steel",
+          "quantity": 4.0,
+          "unit_price": 11.74,
+          "line_total": 46.96
+        },
+        {
+          "description": "Marketing campaign management",
+          "quantity": 1.0,
+          "unit_price": 1081.9,
+          "line_total": 1081.9
+        }
+      ],
+      "subtotal": 5388.16,
+      "tax": 700.46,
+      "total_due": 6088.62,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_006.pdf",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "brightline_consulting",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "math_error"
+    ],
+    "ground_truth": {
+      "vendor_name": "Brightline Consulting Group",
+      "invoice_number": "INV-2024047",
+      "invoice_date": "2026-07-20",
+      "due_date": "2026-08-19",
+      "line_items": [
+        {
+          "description": "Consulting services - project manager",
+          "quantity": 6.0,
+          "unit_price": 114.45,
+          "line_total": 686.7
+        }
+      ],
+      "subtotal": 686.7,
+      "tax": 0.0,
+      "total_due": 660.52,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_007_scan.jpg",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "pixel_forge_studio",
+    "is_scanned_simulation": true,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Pixel Forge Studio",
+      "invoice_number": "INV-2024052",
+      "invoice_date": "2026-08-24",
+      "due_date": "2026-09-08",
+      "line_items": [
+        {
+          "description": "Safety goggles, bulk pack",
+          "quantity": 7.0,
+          "unit_price": 2.92,
+          "line_total": 20.44
+        },
+        {
+          "description": "On-site training session",
+          "quantity": 1.0,
+          "unit_price": 829.19,
+          "line_total": 829.19
+        },
+        {
+          "description": "Marketing campaign management",
+          "quantity": 1.0,
+          "unit_price": 1193.8,
+          "line_total": 1193.8
+        },
+        {
+          "description": "Printer toner cartridge, black",
+          "quantity": 7.0,
+          "unit_price": 42.09,
+          "line_total": 294.63
+        },
+        {
+          "description": "Replacement HVAC filter",
+          "quantity": 12.0,
+          "unit_price": 13.45,
+          "line_total": 161.4
+        },
+        {
+          "description": "Print run - business cards (500ct)",
+          "quantity": 11.0,
+          "unit_price": 42.43,
+          "line_total": 466.73
+        }
+      ],
+      "subtotal": 2966.19,
+      "tax": 593.24,
+      "total_due": 3559.43,
+      "currency": "EUR"
+    }
+  },
+  {
+    "file": "invoices/invoice_008_scan.jpg",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "copperfield_print",
+    "is_scanned_simulation": true,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Copperfield Print & Design",
+      "invoice_number": "INV-2024059",
+      "invoice_date": "2026-05-27",
+      "due_date": "2026-06-11",
+      "line_items": [
+        {
+          "description": "Printer toner cartridge, black",
+          "quantity": 4.0,
+          "unit_price": 40.03,
+          "line_total": 160.12
+        }
+      ],
+      "subtotal": 160.12,
+      "tax": 20.82,
+      "total_due": 180.94,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_009.pdf",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "brightline_consulting",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "bad_due_date"
+    ],
+    "ground_truth": {
+      "vendor_name": "Brightline Consulting Group",
+      "invoice_number": "INV-2024069",
+      "invoice_date": "2026-09-15",
+      "due_date": "2026-09-07",
+      "line_items": [
+        {
+          "description": "Custom bracket, stainless steel",
+          "quantity": 8.0,
+          "unit_price": 12.29,
+          "line_total": 98.32
+        },
+        {
+          "description": "Printer toner cartridge, black",
+          "quantity": 9.0,
+          "unit_price": 39.17,
+          "line_total": 352.53
+        },
+        {
+          "description": "Widget assembly, model A-12",
+          "quantity": 11.0,
+          "unit_price": 4.76,
+          "line_total": 52.36
+        }
+      ],
+      "subtotal": 503.21,
+      "tax": 0.0,
+      "total_due": 503.21,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_010.pdf",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "brightline_consulting",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Brightline Consulting Group",
+      "invoice_number": "INV-2024073",
+      "invoice_date": "2026-09-03",
+      "due_date": "2026-09-18",
+      "line_items": [
+        {
+          "description": "Warehouse pallet storage",
+          "quantity": 8.0,
+          "unit_price": 20.83,
+          "line_total": 166.64
+        },
+        {
+          "description": "Marketing campaign management",
+          "quantity": 1.0,
+          "unit_price": 1185.87,
+          "line_total": 1185.87
+        }
+      ],
+      "subtotal": 1352.51,
+      "tax": 0.0,
+      "total_due": 1352.51,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_011.pdf",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "northwind_traders",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "missing_field"
+    ],
+    "ground_truth": {
+      "vendor_name": "Northwind Traders Ltd.",
+      "invoice_number": "INV-2024080",
+      "invoice_date": "2026-05-25",
+      "due_date": "2026-06-24",
+      "line_items": [
+        {
+          "description": "Print run - business cards (500ct)",
+          "quantity": 5.0,
+          "unit_price": 41.95,
+          "line_total": 209.75
+        }
+      ],
+      "subtotal": 209.75,
+      "tax": null,
+      "total_due": 251.7,
+      "currency": "GBP"
+    }
+  },
+  {
+    "file": "invoices/invoice_012.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "granite_office_supply",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Granite Office Supply Co.",
+      "invoice_number": "INV-2024089",
+      "invoice_date": "2026-05-03",
+      "due_date": "2026-05-18",
+      "line_items": [
+        {
+          "description": "Standing desk, adjustable",
+          "quantity": 4.0,
+          "unit_price": 378.46,
+          "line_total": 1513.84
+        },
+        {
+          "description": "Cloud hosting - monthly",
+          "quantity": 1.0,
+          "unit_price": 493.16,
+          "line_total": 493.16
+        }
+      ],
+      "subtotal": 2007.0,
+      "tax": 125.44,
+      "total_due": 2132.44,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_013.pdf",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "pixel_forge_studio",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Pixel Forge Studio",
+      "invoice_number": "INV-2024097",
+      "invoice_date": "2026-05-11",
+      "due_date": "2026-05-26",
+      "line_items": [
+        {
+          "description": "Consulting services - project manager",
+          "quantity": 9.0,
+          "unit_price": 137.78,
+          "line_total": 1240.02
+        },
+        {
+          "description": "On-site training session",
+          "quantity": 1.0,
+          "unit_price": 915.16,
+          "line_total": 915.16
+        },
+        {
+          "description": "Marketing campaign management",
+          "quantity": 1.0,
+          "unit_price": 1095.02,
+          "line_total": 1095.02
+        }
+      ],
+      "subtotal": 3250.2,
+      "tax": 650.04,
+      "total_due": 3900.24,
+      "currency": "EUR"
+    }
+  },
+  {
+    "file": "invoices/invoice_014.pdf",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "cobalt_logistics",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "missing_field"
+    ],
+    "ground_truth": {
+      "vendor_name": "Cobalt Logistics & Freight",
+      "invoice_number": "INV-2024102",
+      "invoice_date": "2026-04-26",
+      "due_date": null,
+      "line_items": [
+        {
+          "description": "Widget assembly, model A-12",
+          "quantity": 11.0,
+          "unit_price": 4.63,
+          "line_total": 50.93
+        },
+        {
+          "description": "On-site training session",
+          "quantity": 1.0,
+          "unit_price": 889.95,
+          "line_total": 889.95
+        }
+      ],
+      "subtotal": 940.88,
+      "tax": 82.33,
+      "total_due": 1023.21,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_015.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "granite_office_supply",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "bad_due_date"
+    ],
+    "ground_truth": {
+      "vendor_name": "Granite Office Supply Co.",
+      "invoice_number": "INV-2024105",
+      "invoice_date": "2026-03-10",
+      "due_date": "2026-02-23",
+      "line_items": [
+        {
+          "description": "Widget assembly, model A-12",
+          "quantity": 4.0,
+          "unit_price": 4.45,
+          "line_total": 17.8
+        },
+        {
+          "description": "Warehouse pallet storage",
+          "quantity": 6.0,
+          "unit_price": 20.96,
+          "line_total": 125.76
+        },
+        {
+          "description": "IT support retainer",
+          "quantity": 1.0,
+          "unit_price": 789.66,
+          "line_total": 789.66
+        },
+        {
+          "description": "Software license - annual seat",
+          "quantity": 22.0,
+          "unit_price": 207.36,
+          "line_total": 4561.92
+        },
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 8.0,
+          "unit_price": 256.93,
+          "line_total": 2055.44
+        }
+      ],
+      "subtotal": 7550.58,
+      "tax": 471.91,
+      "total_due": 8022.49,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_016.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "brightline_consulting",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "math_error"
+    ],
+    "ground_truth": {
+      "vendor_name": "Brightline Consulting Group",
+      "invoice_number": "INV-2024112",
+      "invoice_date": "2026-04-04",
+      "due_date": "2026-05-19",
+      "line_items": [
+        {
+          "description": "Safety goggles, bulk pack",
+          "quantity": 3.0,
+          "unit_price": 3.43,
+          "line_total": 10.29
+        },
+        {
+          "description": "Widget assembly, model B-7",
+          "quantity": 2.0,
+          "unit_price": 7.38,
+          "line_total": 14.76
+        },
+        {
+          "description": "Widget assembly, model A-12",
+          "quantity": 6.0,
+          "unit_price": 4.09,
+          "line_total": 24.54
+        },
+        {
+          "description": "Standing desk, adjustable",
+          "quantity": 8.0,
+          "unit_price": 368.36,
+          "line_total": 2946.88
+        },
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 12.0,
+          "unit_price": 256.14,
+          "line_total": 3073.68
+        }
+      ],
+      "subtotal": 6070.15,
+      "tax": 0.0,
+      "total_due": 6031.98,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_017_scan.jpg",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "pixel_forge_studio",
+    "is_scanned_simulation": true,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Pixel Forge Studio",
+      "invoice_number": "INV-2024124",
+      "invoice_date": "2026-04-17",
+      "due_date": "2026-05-02",
+      "line_items": [
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 2.0,
+          "unit_price": 281.78,
+          "line_total": 563.56
+        },
+        {
+          "description": "Widget assembly, model B-7",
+          "quantity": 3.0,
+          "unit_price": 6.48,
+          "line_total": 19.44
+        }
+      ],
+      "subtotal": 583.0,
+      "tax": 116.6,
+      "total_due": 699.6,
+      "currency": "EUR"
+    }
+  },
+  {
+    "file": "invoices/invoice_018.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "pixel_forge_studio",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "math_error"
+    ],
+    "ground_truth": {
+      "vendor_name": "Pixel Forge Studio",
+      "invoice_number": "INV-2024131",
+      "invoice_date": "2026-09-05",
+      "due_date": "2026-09-20",
+      "line_items": [
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 8.0,
+          "unit_price": 253.14,
+          "line_total": 2025.12
+        },
+        {
+          "description": "IT support retainer",
+          "quantity": 1.0,
+          "unit_price": 879.84,
+          "line_total": 879.84
+        }
+      ],
+      "subtotal": 2904.96,
+      "tax": 580.99,
+      "total_due": 3497.27,
+      "currency": "EUR"
+    }
+  },
+  {
+    "file": "invoices/invoice_019.pdf",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "pixel_forge_studio",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Pixel Forge Studio",
+      "invoice_number": "INV-2024134",
+      "invoice_date": "2026-08-30",
+      "due_date": "2026-10-14",
+      "line_items": [
+        {
+          "description": "Freight & handling",
+          "quantity": 1.0,
+          "unit_price": 94.61,
+          "line_total": 94.61
+        },
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 9.0,
+          "unit_price": 279.64,
+          "line_total": 2516.76
+        },
+        {
+          "description": "Office chair, ergonomic",
+          "quantity": 9.0,
+          "unit_price": 189.45,
+          "line_total": 1705.05
+        }
+      ],
+      "subtotal": 4316.42,
+      "tax": 863.28,
+      "total_due": 5179.7,
+      "currency": "EUR"
+    }
+  },
+  {
+    "file": "invoices/invoice_020.pdf",
+    "doc_type": "invoice",
+    "template": "compact",
+    "vendor_id": "solstice_marketing",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Solstice Marketing Partners",
+      "invoice_number": "INV-2024146",
+      "invoice_date": "2026-06-20",
+      "due_date": "2026-08-04",
+      "line_items": [
+        {
+          "description": "Consulting services - project manager",
+          "quantity": 3.0,
+          "unit_price": 113.65,
+          "line_total": 340.95
+        },
+        {
+          "description": "Graphic design - logo package",
+          "quantity": 1.0,
+          "unit_price": 637.15,
+          "line_total": 637.15
+        },
+        {
+          "description": "Replacement HVAC filter",
+          "quantity": 1.0,
+          "unit_price": 16.19,
+          "line_total": 16.19
+        },
+        {
+          "description": "Freight & handling",
+          "quantity": 1.0,
+          "unit_price": 84.21,
+          "line_total": 84.21
+        },
+        {
+          "description": "Warehouse pallet storage",
+          "quantity": 4.0,
+          "unit_price": 23.03,
+          "line_total": 92.12
+        }
+      ],
+      "subtotal": 1170.62,
+      "tax": 0.0,
+      "total_due": 1170.62,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_021.pdf",
+    "doc_type": "invoice",
+    "template": "classic_table",
+    "vendor_id": "brightline_consulting",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "missing_field"
+    ],
+    "ground_truth": {
+      "vendor_name": "Brightline Consulting Group",
+      "invoice_number": "INV-2024153",
+      "invoice_date": "2026-06-05",
+      "due_date": null,
+      "line_items": [
+        {
+          "description": "On-site training session",
+          "quantity": 1.0,
+          "unit_price": 1003.29,
+          "line_total": 1003.29
+        },
+        {
+          "description": "Freight & handling",
+          "quantity": 1.0,
+          "unit_price": 95.97,
+          "line_total": 95.97
+        },
+        {
+          "description": "Printer toner cartridge, black",
+          "quantity": 7.0,
+          "unit_price": 38.48,
+          "line_total": 269.36
+        },
+        {
+          "description": "Office chair, ergonomic",
+          "quantity": 12.0,
+          "unit_price": 231.71,
+          "line_total": 2780.52
+        }
+      ],
+      "subtotal": 4149.14,
+      "tax": 0.0,
+      "total_due": 4149.14,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_022.pdf",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "cobalt_logistics",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [
+      "math_error"
+    ],
+    "ground_truth": {
+      "vendor_name": "Cobalt Logistics & Freight",
+      "invoice_number": "INV-2024154",
+      "invoice_date": "2026-07-22",
+      "due_date": "2026-08-06",
+      "line_items": [
+        {
+          "description": "Office chair, ergonomic",
+          "quantity": 1.0,
+          "unit_price": 228.67,
+          "line_total": 228.67
+        },
+        {
+          "description": "Widget assembly, model B-7",
+          "quantity": 4.0,
+          "unit_price": 6.37,
+          "line_total": 25.48
+        },
+        {
+          "description": "Print run - business cards (500ct)",
+          "quantity": 8.0,
+          "unit_price": 37.12,
+          "line_total": 296.96
+        }
+      ],
+      "subtotal": 580.88,
+      "tax": 48.22,
+      "total_due": 629.1,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_023.pdf",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "granite_office_supply",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Granite Office Supply Co.",
+      "invoice_number": "INV-2024167",
+      "invoice_date": "2026-06-08",
+      "due_date": "2026-07-23",
+      "line_items": [
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 6.0,
+          "unit_price": 275.9,
+          "line_total": 1655.4
+        }
+      ],
+      "subtotal": 1655.4,
+      "tax": 103.46,
+      "total_due": 1758.86,
+      "currency": "USD"
+    }
+  },
+  {
+    "file": "invoices/invoice_024.pdf",
+    "doc_type": "invoice",
+    "template": "modern_minimal",
+    "vendor_id": "solstice_marketing",
+    "is_scanned_simulation": false,
+    "deliberate_issues": [],
+    "ground_truth": {
+      "vendor_name": "Solstice Marketing Partners",
+      "invoice_number": "INV-2024171",
+      "invoice_date": "2026-05-11",
+      "due_date": "2026-05-26",
+      "line_items": [
+        {
+          "description": "Software license - annual seat",
+          "quantity": 19.0,
+          "unit_price": 221.24,
+          "line_total": 4203.56
+        },
+        {
+          "description": "Consulting services - senior engineer",
+          "quantity": 5.0,
+          "unit_price": 136.26,
+          "line_total": 681.3
+        },
+        {
+          "description": "Widget assembly, model B-7",
+          "quantity": 10.0,
+          "unit_price": 6.72,
+          "line_total": 67.2
+        },
+        {
+          "description": "Network switch, 24-port",
+          "quantity": 12.0,
+          "unit_price": 284.35,
+          "line_total": 3412.2
+        },
+        {
+          "description": "Office chair, ergonomic",
+          "quantity": 7.0,
+          "unit_price": 217.01,
+          "line_total": 1519.07
+        }
+      ],
+      "subtotal": 9883.33,
+      "tax": 0.0,
+      "total_due": 9883.33,
+      "currency": "USD"
+    }
+  }
+]

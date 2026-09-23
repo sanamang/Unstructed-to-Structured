@@ -1,0 +1,58 @@
+{
+  "file": "invoices/invoice_005.pdf",
+  "doc_type": "invoice",
+  "template": "classic_table",
+  "vendor_id": "copperfield_print",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [
+    "bad_due_date"
+  ],
+  "ground_truth": {
+    "vendor_name": "Copperfield Print & Design",
+    "invoice_number": "INV-2024035",
+    "invoice_date": "2026-03-21",
+    "due_date": "2026-03-13",
+    "line_items": [
+      {
+        "description": "Standing desk, adjustable",
+        "quantity": 9.0,
+        "unit_price": 339.77,
+        "line_total": 3057.93
+      },
+      {
+        "description": "Cloud hosting - monthly",
+        "quantity": 1.0,
+        "unit_price": 458.18,
+        "line_total": 458.18
+      },
+      {
+        "description": "Print run - business cards (500ct)",
+        "quantity": 2.0,
+        "unit_price": 37.03,
+        "line_total": 74.06
+      },
+      {
+        "description": "Graphic design - logo package",
+        "quantity": 1.0,
+        "unit_price": 669.13,
+        "line_total": 669.13
+      },
+      {
+        "description": "Custom bracket, stainless steel",
+        "quantity": 4.0,
+        "unit_price": 11.74,
+        "line_total": 46.96
+      },
+      {
+        "description": "Marketing campaign management",
+        "quantity": 1.0,
+        "unit_price": 1081.9,
+        "line_total": 1081.9
+      }
+    ],
+    "subtotal": 5388.16,
+    "tax": 700.46,
+    "total_due": 6088.62,
+    "currency": "USD"
+  }
+}

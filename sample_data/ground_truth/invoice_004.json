@@ -1,0 +1,50 @@
+{
+  "file": "invoices/invoice_004.pdf",
+  "doc_type": "invoice",
+  "template": "compact",
+  "vendor_id": "cobalt_logistics",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Cobalt Logistics & Freight",
+    "invoice_number": "INV-2024034",
+    "invoice_date": "2026-07-26",
+    "due_date": "2026-09-09",
+    "line_items": [
+      {
+        "description": "Widget assembly, model A-12",
+        "quantity": 3.0,
+        "unit_price": 4.44,
+        "line_total": 13.32
+      },
+      {
+        "description": "On-site training session",
+        "quantity": 1.0,
+        "unit_price": 997.48,
+        "line_total": 997.48
+      },
+      {
+        "description": "Marketing campaign management",
+        "quantity": 1.0,
+        "unit_price": 1123.59,
+        "line_total": 1123.59
+      },
+      {
+        "description": "Safety goggles, bulk pack",
+        "quantity": 9.0,
+        "unit_price": 3.38,
+        "line_total": 30.42
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": 1.0,
+        "unit_price": 88.39,
+        "line_total": 88.39
+      }
+    ],
+    "subtotal": 2253.2,
+    "tax": 197.15,
+    "total_due": 2450.35,
+    "currency": "USD"
+  }
+}

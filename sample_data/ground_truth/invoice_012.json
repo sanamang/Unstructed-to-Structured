@@ -1,0 +1,32 @@
+{
+  "file": "invoices/invoice_012.pdf",
+  "doc_type": "invoice",
+  "template": "classic_table",
+  "vendor_id": "granite_office_supply",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Granite Office Supply Co.",
+    "invoice_number": "INV-2024089",
+    "invoice_date": "2026-05-03",
+    "due_date": "2026-05-18",
+    "line_items": [
+      {
+        "description": "Standing desk, adjustable",
+        "quantity": 4.0,
+        "unit_price": 378.46,
+        "line_total": 1513.84
+      },
+      {
+        "description": "Cloud hosting - monthly",
+        "quantity": 1.0,
+        "unit_price": 493.16,
+        "line_total": 493.16
+      }
+    ],
+    "subtotal": 2007.0,
+    "tax": 125.44,
+    "total_due": 2132.44,
+    "currency": "USD"
+  }
+}

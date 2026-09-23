@@ -1,0 +1,38 @@
+{
+  "file": "invoices/invoice_019.pdf",
+  "doc_type": "invoice",
+  "template": "compact",
+  "vendor_id": "pixel_forge_studio",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Pixel Forge Studio",
+    "invoice_number": "INV-2024134",
+    "invoice_date": "2026-08-30",
+    "due_date": "2026-10-14",
+    "line_items": [
+      {
+        "description": "Freight & handling",
+        "quantity": 1.0,
+        "unit_price": 94.61,
+        "line_total": 94.61
+      },
+      {
+        "description": "Network switch, 24-port",
+        "quantity": 9.0,
+        "unit_price": 279.64,
+        "line_total": 2516.76
+      },
+      {
+        "description": "Office chair, ergonomic",
+        "quantity": 9.0,
+        "unit_price": 189.45,
+        "line_total": 1705.05
+      }
+    ],
+    "subtotal": 4316.42,
+    "tax": 863.28,
+    "total_due": 5179.7,
+    "currency": "EUR"
+  }
+}

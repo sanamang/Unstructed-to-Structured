@@ -1,0 +1,32 @@
+{
+  "file": "invoices/invoice_010.pdf",
+  "doc_type": "invoice",
+  "template": "modern_minimal",
+  "vendor_id": "brightline_consulting",
+  "is_scanned_simulation": false,
+  "deliberate_issues": [],
+  "ground_truth": {
+    "vendor_name": "Brightline Consulting Group",
+    "invoice_number": "INV-2024073",
+    "invoice_date": "2026-09-03",
+    "due_date": "2026-09-18",
+    "line_items": [
+      {
+        "description": "Warehouse pallet storage",
+        "quantity": 8.0,
+        "unit_price": 20.83,
+        "line_total": 166.64
+      },
+      {
+        "description": "Marketing campaign management",
+        "quantity": 1.0,
+        "unit_price": 1185.87,
+        "line_total": 1185.87
+      }
+    ],
+    "subtotal": 1352.51,
+    "tax": 0.0,
+    "total_due": 1352.51,
+    "currency": "USD"
+  }
+}
