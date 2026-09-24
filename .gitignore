@@ -12,3 +12,6 @@ node_modules/
 dist/
 build/
 *.log
+
+# Runtime storage: uploaded originals + rasterized page images
+var/

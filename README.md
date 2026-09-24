@@ -13,7 +13,8 @@ Built as a staged project. Each stage is independently runnable and testable.
 - Anthropic Python SDK (Claude, vision input) for extraction
 - reportlab for synthetic sample invoice generation, PyMuPDF/Pillow/numpy for
   scanned-document simulation
-- React + Vite for the review queue frontend (stage 6)
+- React + Vite for the review queue frontend (stage 6), served against a
+  FastAPI backend and a dockerized Postgres
 
 ## Project layout
 
@@ -25,11 +26,18 @@ src/invoice_pipeline/
   classification.py      # Stage 3: invoice vs. unrecognized, via Claude vision
   extraction.py           # Stage 4: structured field extraction, via Claude vision + structured outputs
   validation.py            # Stage 5: plain-Python business rules + confidence threshold
+  db.py                     # Stage 6: SQLAlchemy engine/session setup
+  models.py                  # Stage 6: Document / InvoiceRecord / Correction ORM models
+  pipeline.py                 # Stage 6: ingest -> classify -> [extract -> validate] -> persist
+  api/
+    main.py                    # Stage 6: FastAPI app (upload, list, detail, review endpoints)
+    schemas.py                  # Stage 6: API request/response Pydantic models
   datagen/              # Stage 1: synthetic sample invoice + ground-truth generator
     vendors.py           # vendor/customer/line-item pools
     templates.py          # 3 distinct reportlab invoice layouts
     scan_effects.py        # PDF -> noisy/skewed "bad scan" image rendering
     generate.py            # orchestrator + CLI
+frontend/               # Stage 6: React + Vite review queue UI
 sample_data/
   invoices/             # generated PDFs and scanned .jpg renders
   ground_truth/         # one JSON per invoice, matching schema.Invoice
@@ -41,6 +49,7 @@ scripts/
   generate_sample_data.py       # convenience CLI wrapper for stage 1
   generate_manual_test_pdfs.py  # generates the manual_test_pdfs/ set
   run_pipeline_smoke_test.py    # live classify + extract against one real PDF
+docker-compose.yml      # dedicated Postgres for this project (host port 5433)
 tests/
   test_schema.py
   test_datagen.py
@@ -48,6 +57,8 @@ tests/
   test_classification.py  # mocked Anthropic client - no API key/credit needed
   test_extraction.py      # mocked Anthropic client - no API key/credit needed
   test_validation.py      # business rules + integration check against sample_data ground truth
+  test_pipeline.py        # in-memory SQLite + mocked classify/extract
+  test_api.py             # FastAPI TestClient + in-memory SQLite + mocked classify/extract
 ```
 
 ## Setup
@@ -57,7 +68,15 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env   # fill in ANTHROPIC_API_KEY once you reach the extraction stage
+
+# Postgres for the review queue / system of record (stage 6+). Runs on host
+# port 5433, not 5432, so it won't collide with any other local Postgres.
+docker compose up -d
 ```
+
+`.env`'s `DATABASE_URL` already points at `localhost:5433` to match
+`docker-compose.yml`. `init_db()` creates tables automatically on API startup
+— no separate migration step for this MVP.
 
 ## Stage 1 — Synthetic sample data generator
 
@@ -207,6 +226,56 @@ expect (`missing_field` → `required_field_missing`, `math_error` →
 `due_date_not_after_invoice_date`), and that every clean invoice passes clean
 — a closed loop between the synthetic data generator and the validator.
 
+## Stage 6 — Review queue (FastAPI + React)
+
+Ties stages 2–5 into `pipeline.process_document()`: ingest → classify → (if
+invoice) extract → validate → persist a `Document` row (+ an `InvoiceRecord`
+for invoices). Idempotent by content hash — re-uploading the same file
+returns the existing row instead of re-billing classification/extraction.
+
+**Data model** (`models.py`): `Document` (status: `pending_review` /
+`accepted` / `unrecognized`, classification result, validation issues as
+JSON), `InvoiceRecord` (current field values + the raw stage-4 confidence/page
+`field_meta`, one-to-one with a Document), `Correction` (append-only log of
+every human edit: field, original value, corrected value, timestamp — the
+eval/feedback data called for in the spec).
+
+**API** (`api/main.py`), served at `http://localhost:8000`:
+- `POST /api/upload` — multipart file upload, runs the full pipeline synchronously
+- `GET /api/documents?status=pending_review` — list, optionally filtered by status
+- `GET /api/documents/{id}` — full detail: fields, `field_meta`, validation issues, page image URLs
+- `POST /api/documents/{id}/review` — apply field edits, log each changed field to `Correction`, mark `accepted`
+- Page images served at `/static/pages/{doc_id}/page_{n}.png`
+
+**Frontend** (`frontend/`, React + Vite): a sidebar listing documents by
+status tab (Needs Review / Accepted / Unrecognized / All) with an upload
+button, and a detail pane showing the original page image next to an
+editable field form — each field labeled with a color-coded confidence badge
+(green ≥ threshold, red below) and the source page on hover, plus an
+editable line-items table. "Confirm & resolve" posts the edited fields and
+flips the document to `accepted`.
+
+Run it (needs the API key funded and Postgres running):
+
+```bash
+# terminal 1
+source .venv/bin/activate
+uvicorn invoice_pipeline.api.main:app --port 8000
+
+# terminal 2
+cd frontend
+npm install
+npm run dev   # http://localhost:5173, proxies /api and /static to :8000
+```
+
+Verified end-to-end with Playwright against the live API: uploaded a clean
+sample invoice (auto-accepted, correctly reading "Total Due" over the
+"Amount Paid" decoy), uploaded one with a deliberately missing `due_date`
+(landed in Needs Review with both a `required_field_missing` and a
+`low_confidence_field` issue shown, badge red at 5%), edited a field and
+confirmed it (flipped to Accepted, correction persisted and visible on
+refetch), with zero browser console errors throughout.
+
 ## Tests
 
 ```bash
@@ -218,13 +287,14 @@ determinism, that each deliberate-issue category (`missing_field`,
 `math_error`, `bad_due_date`) and the clean/scanned invoices have the
 properties later validation/eval stages check for, ingestion round-tripping,
 classification/extraction request shape + `InvoiceExtraction.to_invoice()`
-(mocked Anthropic client, no API key/credit needed), and every validation
-rule individually plus end-to-end against `sample_data/ground_truth/`.
+(mocked Anthropic client, no API key/credit needed), every validation rule
+individually plus end-to-end against `sample_data/ground_truth/`, and the
+pipeline/API layer (`test_pipeline.py`/`test_api.py`) against an in-memory
+SQLite database with `classify_document`/`extract_invoice` monkeypatched —
+none of the 47 tests need a live API key, credit, or a running Postgres.
 
 ## Roadmap (subsequent stages)
 
-6. Review queue — FastAPI backend + React frontend to inspect/correct flagged
-   documents; every correction logged for eval feedback
-7. Output layer — Postgres system-of-record table + CSV/JSON export
+7. Output layer — CSV/JSON export of accepted invoices from Postgres
 8. Evaluation script — field-level accuracy, straight-through rate,
    most-error-prone-fields breakdown against `sample_data/ground_truth`

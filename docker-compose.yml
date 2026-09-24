@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: invoice_pipeline_postgres
+    environment:
+      POSTGRES_USER: invoice_pipeline
+      POSTGRES_PASSWORD: invoice_pipeline
+      POSTGRES_DB: invoice_pipeline
+    ports:
+      # Host port 5433, not 5432, to avoid colliding with any other local Postgres.
+      - "5433:5432"
+    volumes:
+      - invoice_pipeline_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invoice_pipeline"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  invoice_pipeline_pgdata:

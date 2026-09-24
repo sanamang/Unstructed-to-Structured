@@ -11,9 +11,12 @@ load_dotenv()
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql+psycopg://invoice_pipeline:invoice_pipeline@localhost:5432/invoice_pipeline",
+    "postgresql+psycopg://invoice_pipeline:invoice_pipeline@localhost:5433/invoice_pipeline",
 )
 CONFIDENCE_THRESHOLD = float(os.environ.get("CONFIDENCE_THRESHOLD", "0.75"))
+
+# Where uploaded source files and rasterized page images are stored on disk.
+STORAGE_DIR = os.environ.get("STORAGE_DIR", "var")
 
 # Both default to Opus 5: best layout/position understanding, which matters
 # for disambiguating fields like "Total Due" from a nearby "Amount Paid".
