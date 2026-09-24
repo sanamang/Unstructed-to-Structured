@@ -104,6 +104,26 @@ def ingest_file(path: str | Path, dpi: int = DEFAULT_DPI) -> IngestedDocument:
     return doc
 
 
+def pages_to_content_blocks(pages: list[PageImage]) -> list[dict]:
+    """Build Claude Messages API image content blocks for a list of pages,
+    each preceded by a page-number text block so the model can cite which
+    page it read a field from."""
+    blocks: list[dict] = []
+    for page in pages:
+        blocks.append({"type": "text", "text": f"Page {page.page_number}:"})
+        blocks.append(
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/png",
+                    "data": page.to_base64_png(),
+                },
+            }
+        )
+    return blocks
+
+
 def save_pages(doc: IngestedDocument, output_dir: str | Path) -> list[Path]:
     """Persist normalized page images as PNGs, e.g. for the review UI to
     display or for caching so extraction doesn't need to re-rasterize."""

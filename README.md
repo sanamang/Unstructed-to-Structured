@@ -19,8 +19,11 @@ Built as a staged project. Each stage is independently runnable and testable.
 
 ```
 src/invoice_pipeline/
-  schema.py            # shared Invoice/LineItem Pydantic schema (ground truth + extraction target)
-  ingestion.py          # Stage 2: normalize PDF/image input into per-page images
+  schema.py            # shared Invoice/LineItem schema + InvoiceExtraction (value+confidence+page wrappers)
+  config.py             # env-driven settings (API key, model ids, confidence threshold, DB url)
+  ingestion.py           # Stage 2: normalize PDF/image input into per-page images
+  classification.py      # Stage 3: invoice vs. unrecognized, via Claude vision
+  extraction.py           # Stage 4: structured field extraction, via Claude vision + structured outputs
   datagen/              # Stage 1: synthetic sample invoice + ground-truth generator
     vendors.py           # vendor/customer/line-item pools
     templates.py          # 3 distinct reportlab invoice layouts
@@ -36,10 +39,13 @@ manual_test_pdfs/
 scripts/
   generate_sample_data.py       # convenience CLI wrapper for stage 1
   generate_manual_test_pdfs.py  # generates the manual_test_pdfs/ set
+  run_pipeline_smoke_test.py    # live classify + extract against one real PDF
 tests/
   test_schema.py
   test_datagen.py
   test_ingestion.py
+  test_classification.py  # mocked Anthropic client - no API key/credit needed
+  test_extraction.py      # mocked Anthropic client - no API key/credit needed
 ```
 
 ## Setup
@@ -133,22 +139,58 @@ This writes to `manual_test_pdfs/` along with a `reference_values.json` you
 can eyeball against the pipeline's output — these aren't wired into the eval
 script, they're just for quick manual runs.
 
+## Stage 3 — Classification
+
+`classify_document(doc)` sends the ingested page image(s) to Claude with a
+structured `DocumentClassification` output (`doc_type`: `"invoice"` or
+`"unrecognized"`, a confidence score, and one-sentence reasoning), via
+`client.messages.parse(..., output_format=DocumentClassification)`. Runs
+before extraction so the pipeline can gate on document type before spending
+tokens extracting fields from something that isn't an invoice.
+
+## Stage 4 — Extraction
+
+`extract_invoice(doc)` extracts the full invoice field set — vendor name,
+invoice number, dates, line items, subtotal, tax, total due, currency — as an
+`InvoiceExtraction`, where **every field is wrapped with its own `confidence`
+(0–1) and source `page` number**, via the same structured-output mechanism.
+The prompt explicitly warns the model about decoy fields (e.g. an "Amount
+Paid: $0.00" line sitting right above "Total Due" in the `modern_minimal`
+sample template) and tells it to prefer visual position/emphasis over nearest
+matching label. Call `.to_invoice()` on the result to collapse it down to a
+plain `Invoice` for validation or comparison against ground truth.
+
+Both stages default to `claude-opus-5` (best layout/position understanding),
+configurable via `CLASSIFICATION_MODEL` / `EXTRACTION_MODEL` in `.env`.
+
+Both `classify_document()` and `extract_invoice()` take an optional `client`
+argument, so tests inject a fake `Anthropic` client and never hit the network
+— see `tests/test_classification.py` / `tests/test_extraction.py`. To try it
+against the live API (needs a funded `ANTHROPIC_API_KEY` in `.env`):
+
+```bash
+python scripts/run_pipeline_smoke_test.py manual_test_pdfs/test_invoice_02.pdf
+```
+
+Verified manually against all 3 `manual_test_pdfs/` invoices — extracted
+values matched `reference_values.json` exactly, including correctly picking
+"Total Due" over the "Amount Paid" decoy on the `modern_minimal` template.
+
 ## Tests
 
 ```bash
 python -m pytest tests/ -q
 ```
 
-Covers: schema parsing (`Invoice`/`LineItem`), generator determinism, and that
-each deliberate-issue category (`missing_field`, `math_error`, `bad_due_date`)
-and the clean/scanned invoices actually have the properties the later
-validation and eval stages will check for.
+Covers: schema parsing (`Invoice`/`LineItem`/`InvoiceExtraction`), generator
+determinism, that each deliberate-issue category (`missing_field`,
+`math_error`, `bad_due_date`) and the clean/scanned invoices have the
+properties later validation/eval stages check for, ingestion round-tripping,
+and classification/extraction request shape + `InvoiceExtraction.to_invoice()`
+— all via a mocked Anthropic client, so the suite needs no API key or credit.
 
 ## Roadmap (subsequent stages)
 
-3. Classification — invoice vs. not-an-invoice, via Claude vision
-4. Extraction — strict JSON schema, confidence scores + page refs, via Claude
-   structured output/tool use
 5. Validation — plain-Python business rules (sums, date order, required
    fields, confidence threshold) that route failures to human review
 6. Review queue — FastAPI backend + React frontend to inspect/correct flagged
