@@ -15,11 +15,13 @@ from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from invoice_pipeline.api.schemas import DocumentDetail, DocumentSummary, ReviewRequest
 from invoice_pipeline.db import SessionLocal, init_db
+from invoice_pipeline.export import accepted_invoices, invoices_csv, line_items_csv, to_json
 from invoice_pipeline.models import Correction, Document, DocumentStatus, InvoiceRecord, utcnow
 from invoice_pipeline.pipeline import PAGES_DIR, UPLOADS_DIR, process_document
 
@@ -52,6 +54,12 @@ SCALAR_INVOICE_FIELDS = (
     "total_due",
     "currency",
 )
+
+EXPORTS = {
+    "invoices.csv": (invoices_csv, "text/csv"),
+    "line_items.csv": (line_items_csv, "text/csv"),
+    "invoices.json": (to_json, "application/json"),
+}
 
 
 def get_session():
@@ -123,6 +131,19 @@ def get_document(doc_id: str, session: Session = Depends(get_session)):
     if document is None:
         raise HTTPException(404, "document not found")
     return _to_detail(document)
+
+
+@app.get("/api/export/{filename}")
+def export_accepted(filename: str, session: Session = Depends(get_session)):
+    """Download accepted invoices as invoices.csv, line_items.csv, or invoices.json."""
+    if filename not in EXPORTS:
+        raise HTTPException(404, f"unknown export {filename!r}; expected one of {sorted(EXPORTS)}")
+    render, media_type = EXPORTS[filename]
+    return Response(
+        content=render(accepted_invoices(session)),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.post("/api/upload", response_model=DocumentDetail)

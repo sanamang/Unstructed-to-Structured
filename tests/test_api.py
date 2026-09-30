@@ -136,3 +136,24 @@ def test_review_document_applies_correction_and_logs_it(client):
     # Re-fetch to confirm the correction persisted, not just the response echo.
     refetched = client.get(f"/api/documents/{doc_id}").json()
     assert refetched["vendor_name"] == "Acme Corrected LLC"
+
+
+def test_export_includes_only_accepted_invoices(client):
+    _upload(client)  # clean extraction -> auto-accepted
+
+    csv_response = client.get("/api/export/invoices.csv")
+    assert csv_response.status_code == 200
+    assert csv_response.headers["content-type"].startswith("text/csv")
+    assert 'filename="invoices.csv"' in csv_response.headers["content-disposition"]
+    lines = csv_response.text.strip().splitlines()
+    assert len(lines) == 2 and "INV-000123" in lines[1]
+
+    json_response = client.get("/api/export/invoices.json")
+    assert json_response.json()[0]["vendor_name"] == "Acme Industrial Supplies"
+
+    line_items_response = client.get("/api/export/line_items.csv")
+    assert "Widget" in line_items_response.text
+
+
+def test_export_rejects_unknown_filename(client):
+    assert client.get("/api/export/secrets.txt").status_code == 404

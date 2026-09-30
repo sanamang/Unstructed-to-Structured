@@ -36,6 +36,12 @@ export default function DocumentList({
             }}
           />
         </label>
+        <div className="export-links">
+          Export accepted:
+          <a href="/api/export/invoices.csv" download>CSV</a>
+          <a href="/api/export/line_items.csv" download>Line items CSV</a>
+          <a href="/api/export/invoices.json" download>JSON</a>
+        </div>
       </div>
 
       <div className="status-tabs">

@@ -15,3 +15,7 @@ build/
 
 # Runtime storage: uploaded originals + rasterized page images
 var/
+
+# Evaluation runs (cached predictions + reports) and export output
+eval_runs/
+exports/

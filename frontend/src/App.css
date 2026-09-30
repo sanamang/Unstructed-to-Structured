@@ -87,6 +87,19 @@ body {
   display: none;
 }
 
+.export-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.export-links a {
+  color: var(--accent);
+}
+
 .status-tabs {
   display: flex;
   gap: 4px;
