@@ -29,6 +29,8 @@ src/invoice_pipeline/
   db.py                     # Stage 6: SQLAlchemy engine/session setup
   models.py                  # Stage 6: Document / InvoiceRecord / Correction ORM models
   pipeline.py                 # Stage 6: ingest -> classify -> [extract -> validate] -> persist
+  export.py                    # Stage 7: CSV/JSON export of accepted invoices (+ CLI)
+  evaluation.py                 # Stage 8: accuracy/straight-through eval against sample_data ground truth (+ CLI)
   api/
     main.py                    # Stage 6: FastAPI app (upload, list, detail, review endpoints)
     schemas.py                  # Stage 6: API request/response Pydantic models
@@ -49,6 +51,8 @@ scripts/
   generate_sample_data.py       # convenience CLI wrapper for stage 1
   generate_manual_test_pdfs.py  # generates the manual_test_pdfs/ set
   run_pipeline_smoke_test.py    # live classify + extract against one real PDF
+  export_invoices.py            # stage 7 CLI wrapper
+  run_evaluation.py             # stage 8 CLI wrapper
 docker-compose.yml      # dedicated Postgres for this project (host port 5433)
 tests/
   test_schema.py
@@ -59,6 +63,8 @@ tests/
   test_validation.py      # business rules + integration check against sample_data ground truth
   test_pipeline.py        # in-memory SQLite + mocked classify/extract
   test_api.py             # FastAPI TestClient + in-memory SQLite + mocked classify/extract
+  test_export.py          # stage 7 export against in-memory SQLite
+  test_evaluation.py      # stage 8 scoring with fake predictors built from ground truth
 ```
 
 ## Setup
@@ -91,6 +97,8 @@ Deliberate variation baked in:
 - ~16% with a math error (line items don't sum to the stated subtotal, or
   subtotal + tax doesn't equal the total due)
 - ~12% with an invalid date order (due date before invoice date)
+- Every "Total Due" label carries the ISO currency code (e.g. `Total Due (USD)`),
+  since a bare `$` is ambiguous for vendors outside the US
 - ~16% rendered as a degraded "scan" (skew, gaussian noise, blur, JPEG
   recompression) instead of a clean PDF
 
@@ -276,6 +284,65 @@ sample invoice (auto-accepted, correctly reading "Total Due" over the
 confirmed it (flipped to Accepted, correction persisted and visible on
 refetch), with zero browser console errors throughout.
 
+## Stage 7 — Output layer (CSV/JSON export)
+
+`export.py` exports **accepted** invoices only (auto-accepted by validation or
+resolved by a reviewer). Pending-review and unrecognized documents are never
+exported. Each record carries a `human_corrected` flag (true if any
+`Correction` rows exist for it) and its `resolved_at` timestamp.
+
+- **CSV** is two files because line items are one-to-many: `invoices.csv`
+  (one row per invoice, with `line_item_count`) and `line_items.csv` (one row
+  per line item, keyed by `document_id` + `line_number`).
+- **JSON** is one `invoices.json` list with line items nested.
+
+```bash
+python scripts/export_invoices.py --format csv --out exports/
+python scripts/export_invoices.py --format json --since 2026-09-01   # incremental: resolved on/after
+```
+
+The API serves the same data as downloads at `GET /api/export/invoices.csv`,
+`/api/export/line_items.csv` and `/api/export/invoices.json`. The review UI
+sidebar links to all three.
+
+## Stage 8 — Evaluation
+
+`evaluation.py` runs classification, extraction and validation over every
+invoice in `sample_data/manifest.json` and scores the output against ground
+truth. It calls the stages directly and does not touch the database.
+
+```bash
+python scripts/run_evaluation.py                # all 25 sample invoices
+python scripts/run_evaluation.py --limit 5      # cheap partial run
+python scripts/run_evaluation.py --refresh      # ignore cached predictions
+```
+
+Each document's model output is cached under `eval_runs/latest/predictions/`,
+so re-running (for example after changing a scoring rule or `--threshold`)
+only re-scores and makes no API calls. The full report is written to
+`eval_runs/latest/report.json`, and a summary is printed.
+
+What it measures:
+- **Field-level accuracy** for each scalar field and for `line_items` as a
+  whole (every item correct, same count), plus accuracy for each line-item
+  sub-field, with items aligned by position. Text is compared after
+  collapsing whitespace and ignoring case. Numbers match within ±0.01. A null
+  only matches a null.
+- **Document accuracy**: the share of documents with every field correct.
+- **Straight-through rate**: the share that validation auto-accepts. Also
+  **precision** (the share of auto-accepts that were fully correct) and a list
+  of **auto-accepted documents with errors**. These are the costly misses,
+  since no human sees them.
+- **Flawed-document catch rate**: the share of invoices with a deliberate
+  stage-1 issue (missing field, math error, bad due date) that went to review.
+- **Most error-prone fields**, ranked by error count with example
+  expected/predicted values. Line-item positions are grouped, so
+  `line_items[3].unit_price` counts as `line_items.unit_price`.
+- **Breakdowns** by template and by clean PDF vs. simulated scan.
+
+A document that fails to process (for example an API error) is listed under
+`errors`, scored as all-wrong and not cached, so the next run retries it.
+
 ## Tests
 
 ```bash
@@ -290,11 +357,8 @@ classification/extraction request shape + `InvoiceExtraction.to_invoice()`
 (mocked Anthropic client, no API key/credit needed), every validation rule
 individually plus end-to-end against `sample_data/ground_truth/`, and the
 pipeline/API layer (`test_pipeline.py`/`test_api.py`) against an in-memory
-SQLite database with `classify_document`/`extract_invoice` monkeypatched —
-none of the 47 tests need a live API key, credit, or a running Postgres.
-
-## Roadmap (subsequent stages)
-
-7. Output layer — CSV/JSON export of accepted invoices from Postgres
-8. Evaluation script — field-level accuracy, straight-through rate,
-   most-error-prone-fields breakdown against `sample_data/ground_truth`
+SQLite database with `classify_document`/`extract_invoice` monkeypatched,
+export (`test_export.py`, plus the API download endpoints), and evaluation
+scoring (`test_evaluation.py`) using fake predictors built from ground truth,
+which checks that perfect predictions score 100% and every flawed invoice is
+caught — none of the 64 tests need a live API key, credit, or a running Postgres.

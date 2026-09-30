@@ -26,6 +26,10 @@ from invoice_pipeline.datagen.vendors import CUSTOMERS, LINE_ITEM_POOL, VENDORS
 
 TEMPLATE_NAMES = list(TEMPLATES.keys())
 
+# Invoice dates are drawn relative to a fixed date, not date.today(), so the
+# same --seed produces byte-identical ground truth no matter when it's run.
+REFERENCE_DATE = date(2026, 9, 23)
+
 
 @dataclass
 class PlannedInvoice:
@@ -115,7 +119,7 @@ def _build_invoice_data(plan: PlannedInvoice, rng: random.Random) -> dict:
     tax = round(subtotal * vendor["tax_rate"], 2)
     total_due = round(subtotal + tax, 2)
 
-    invoice_date = date.today() - timedelta(days=rng.randint(5, 200))
+    invoice_date = REFERENCE_DATE - timedelta(days=rng.randint(5, 200))
     due_date = invoice_date + timedelta(days=rng.choice([15, 30, 45]))
 
     inv = {
