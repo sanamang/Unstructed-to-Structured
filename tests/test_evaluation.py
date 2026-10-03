@@ -101,7 +101,7 @@ def test_missing_line_item_counts_against_line_item_fields(tmp_path, ground_trut
 
 def test_low_confidence_routes_to_review(tmp_path, ground_truth_by_file):
     def tweak(key, prediction):
-        prediction["extraction"]["tax"]["confidence"] = 0.2
+        prediction["extraction"]["total_due"]["confidence"] = 0.2  # total_due is never absent
 
     report = evaluate(MANIFEST, tmp_path, predict=_predictor(ground_truth_by_file, tweak), workers=1)
     assert report["straight_through"]["rate"] == 0.0

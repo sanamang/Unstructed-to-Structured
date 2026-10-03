@@ -109,3 +109,20 @@ def test_process_document_is_idempotent_for_the_same_file(db_session, tmp_path, 
     assert first.id == second.id
     assert call_count["classify"] == 1
     assert db_session.query(Document).count() == 1
+
+
+def test_ingest_upload_stores_without_calling_the_model(db_session, tmp_path, monkeypatch):
+    _patch_storage_dirs(monkeypatch, tmp_path)
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("ingest_upload must not call the model")
+
+    monkeypatch.setattr(pipeline_module, "classify_document", _fail)
+    monkeypatch.setattr(pipeline_module, "extract_invoice", _fail)
+
+    document = pipeline_module.ingest_upload("manual_test_pdfs/test_invoice_01.pdf", session=db_session)
+
+    assert document.status == DocumentStatus.UPLOADED
+    assert document.doc_type is None
+    assert document.invoice is None
+    assert (tmp_path / "pages" / document.id / "page_001.png").exists()

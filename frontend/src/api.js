@@ -9,6 +9,10 @@ async function request(path, options) {
   return res.json()
 }
 
+export function checkHealth() {
+  return request('/health')
+}
+
 export function listDocuments(status) {
   const qs = status ? `?status=${encodeURIComponent(status)}` : ''
   return request(`/documents${qs}`)
@@ -24,6 +28,10 @@ export function reviewDocument(id, fields) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields }),
   })
+}
+
+export function structureDocument(id) {
+  return request(`/documents/${id}/structure`, { method: 'POST' })
 }
 
 export async function uploadDocument(file) {

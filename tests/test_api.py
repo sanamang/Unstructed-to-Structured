@@ -75,17 +75,37 @@ def _upload(client: TestClient, path: str = "manual_test_pdfs/test_invoice_01.pd
         return client.post("/api/upload", files={"file": ("test_invoice_01.pdf", f, "application/pdf")})
 
 
+def _upload_and_structure(client: TestClient):
+    doc_id = _upload(client).json()["id"]
+    return client.post(f"/api/documents/{doc_id}/structure")
+
+
 def test_health_check(client):
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
-def test_upload_document_persists_and_returns_detail(client):
+def test_upload_stores_document_without_structuring_it(client, monkeypatch):
+    def _fail(*args, **kwargs):
+        raise AssertionError("upload must not call the model")
+
+    monkeypatch.setattr(pipeline_module, "classify_document", _fail)
     response = _upload(client)
     assert response.status_code == 200
     body = response.json()
+    assert body["status"] == "uploaded"
+    assert body["doc_type"] is None
+    assert body["vendor_name"] is None
+    assert body["page_urls"] == [f"/static/pages/{body['id']}/page_001.png"]
+
+
+def test_structure_extracts_and_validates_uploaded_document(client):
+    response = _upload_and_structure(client)
+    assert response.status_code == 200
+    body = response.json()
     assert body["status"] == "accepted"
+    assert body["doc_type"] == "invoice"
     assert body["vendor_name"] == "Acme Industrial Supplies"
     assert body["total_due"] == 21.6
     assert body["page_urls"] == [f"/static/pages/{body['id']}/page_001.png"]
@@ -100,8 +120,25 @@ def test_list_documents_returns_uploaded_document(client):
     assert upload_body["id"] in ids
 
 
+def test_structure_twice_is_rejected(client):
+    doc_id = _upload_and_structure(client).json()["id"]
+    response = client.post(f"/api/documents/{doc_id}/structure")
+    assert response.status_code == 409
+
+
+def test_structure_404_for_unknown_id(client):
+    assert client.post("/api/documents/does-not-exist/structure").status_code == 404
+
+
+def test_reupload_returns_existing_structured_document(client):
+    first = _upload_and_structure(client).json()
+    again = _upload(client).json()
+    assert again["id"] == first["id"]
+    assert again["status"] == "accepted"
+
+
 def test_list_documents_filters_by_status(client):
-    _upload(client)
+    _upload_and_structure(client)
     accepted = client.get("/api/documents", params={"status": "accepted"}).json()
     pending = client.get("/api/documents", params={"status": "pending_review"}).json()
     assert len(accepted) == 1
@@ -121,7 +158,7 @@ def test_get_document_detail_404_for_unknown_id(client):
 
 
 def test_review_document_applies_correction_and_logs_it(client):
-    doc_id = _upload(client).json()["id"]
+    doc_id = _upload_and_structure(client).json()["id"]
 
     response = client.post(
         f"/api/documents/{doc_id}/review",
@@ -139,7 +176,7 @@ def test_review_document_applies_correction_and_logs_it(client):
 
 
 def test_export_includes_only_accepted_invoices(client):
-    _upload(client)  # clean extraction -> auto-accepted
+    _upload_and_structure(client)  # clean extraction -> auto-accepted
 
     csv_response = client.get("/api/export/invoices.csv")
     assert csv_response.status_code == 200
@@ -157,3 +194,22 @@ def test_export_includes_only_accepted_invoices(client):
 
 def test_export_rejects_unknown_filename(client):
     assert client.get("/api/export/secrets.txt").status_code == 404
+
+
+def test_list_summary_includes_card_fields(client):
+    _upload_and_structure(client)
+    summary = client.get("/api/documents").json()[0]
+    assert summary["invoice_number"] == "INV-000123"
+    assert summary["invoice_date"] == "2025-01-01"
+    assert summary["currency"] == "USD"
+    assert summary["min_confidence"] == 0.95
+    assert summary["validation_issues"] == []
+
+
+def test_min_confidence_ignores_fields_not_on_the_document():
+    meta = {
+        "vendor_name": {"value": "Acme", "confidence": 0.9},
+        "due_date": {"value": None, "confidence": 0.05},
+        "line_items": [{"quantity": {"value": 2, "confidence": 0.8}}],
+    }
+    assert api_main._min_confidence(meta) == 0.8

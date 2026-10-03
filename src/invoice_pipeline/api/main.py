@@ -1,8 +1,9 @@
 """Stage 6 backend: review queue API.
 
-Lists flagged (and accepted/unrecognized) documents, serves the original
-page images alongside extracted fields, accepts human corrections, and logs
-every corrected field to the Correction table.
+Uploading a file only stores it and renders its pages; a separate
+"structure" call runs classification/extraction/validation. Also lists
+documents, serves page images alongside extracted fields, accepts human
+corrections, and logs every corrected field to the Correction table.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
+import anthropic
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -23,7 +25,7 @@ from invoice_pipeline.api.schemas import DocumentDetail, DocumentSummary, Review
 from invoice_pipeline.db import SessionLocal, init_db
 from invoice_pipeline.export import accepted_invoices, invoices_csv, line_items_csv, to_json
 from invoice_pipeline.models import Correction, Document, DocumentStatus, InvoiceRecord, utcnow
-from invoice_pipeline.pipeline import PAGES_DIR, UPLOADS_DIR, process_document
+from invoice_pipeline.pipeline import PAGES_DIR, UPLOADS_DIR, AlreadyStructuredError, ingest_upload, structure_document
 
 
 @asynccontextmanager
@@ -74,6 +76,24 @@ def _page_urls(document: Document) -> list[str]:
     return [f"/static/pages/{document.id}/page_{n:03d}.png" for n in range(1, document.page_count + 1)]
 
 
+def _min_confidence(field_meta: dict) -> Optional[float]:
+    """Lowest confidence across every value actually read from the document,
+    line items included. Fields that weren't on the document (value null)
+    are skipped - their low score means "absent", not "unsure"."""
+
+    def read(entries) -> list[float]:
+        return [
+            v["confidence"]
+            for v in entries
+            if isinstance(v, dict) and "confidence" in v and v.get("value") is not None
+        ]
+
+    confidences = read(field_meta.values())
+    for item in field_meta.get("line_items") or []:
+        confidences += read(item.values())
+    return min(confidences) if confidences else None
+
+
 def _to_summary(document: Document) -> DocumentSummary:
     invoice = document.invoice
     return DocumentSummary(
@@ -83,9 +103,15 @@ def _to_summary(document: Document) -> DocumentSummary:
         classification_confidence=document.classification_confidence,
         status=document.status.value,
         vendor_name=invoice.vendor_name if invoice else None,
+        invoice_number=invoice.invoice_number if invoice else None,
+        invoice_date=invoice.invoice_date if invoice else None,
         total_due=invoice.total_due if invoice else None,
+        currency=invoice.currency if invoice else None,
         issue_count=len(document.validation_issues or []),
+        validation_issues=document.validation_issues or [],
+        min_confidence=_min_confidence(invoice.field_meta or {}) if invoice else None,
         created_at=document.created_at,
+        resolved_at=document.resolved_at,
     )
 
 
@@ -95,16 +121,11 @@ def _to_detail(document: Document) -> DocumentDetail:
         **_to_summary(document).model_dump(),
         page_count=document.page_count,
         page_urls=_page_urls(document),
-        invoice_number=invoice.invoice_number if invoice else None,
-        invoice_date=invoice.invoice_date if invoice else None,
         due_date=invoice.due_date if invoice else None,
         subtotal=invoice.subtotal if invoice else None,
         tax=invoice.tax if invoice else None,
-        currency=invoice.currency if invoice else None,
         line_items=invoice.line_items if invoice else [],
         field_meta=invoice.field_meta if invoice else {},
-        validation_issues=document.validation_issues or [],
-        resolved_at=document.resolved_at,
     )
 
 
@@ -153,9 +174,25 @@ def upload_document(file: UploadFile = File(...), session: Session = Depends(get
         tmp.write(file.file.read())
         tmp_path = Path(tmp.name)
     try:
-        document = process_document(tmp_path, session=session, original_filename=file.filename or tmp_path.name)
+        document = ingest_upload(tmp_path, session=session, original_filename=file.filename or tmp_path.name)
     finally:
         tmp_path.unlink(missing_ok=True)
+    return _to_detail(document)
+
+
+@app.post("/api/documents/{doc_id}/structure", response_model=DocumentDetail)
+def structure(doc_id: str, session: Session = Depends(get_session)):
+    """Classify an uploaded document and extract + validate its fields."""
+    document = session.get(Document, doc_id)
+    if document is None:
+        raise HTTPException(404, "document not found")
+    try:
+        document = structure_document(document, session=session)
+    except AlreadyStructuredError as e:
+        raise HTTPException(409, str(e))
+    except anthropic.APIError as e:
+        session.rollback()
+        raise HTTPException(502, f"extraction service error: {e}")
     return _to_detail(document)
 
 

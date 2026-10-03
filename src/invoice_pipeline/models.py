@@ -1,6 +1,8 @@
 """ORM models for the review queue / system of record.
 
-Document is one row per ingested file. InvoiceRecord holds the *current*
+Document is one row per ingested file. It starts as `uploaded` (stored and
+rasterized only) and moves to pending_review / accepted / unrecognized once
+it's structured. InvoiceRecord holds the *current*
 structured invoice data for a document - initially the extraction output
 collapsed to plain values, overwritten in place as a human reviewer edits
 fields. Correction is an append-only log of every human edit (field,
@@ -24,6 +26,7 @@ def utcnow() -> datetime.datetime:
 
 
 class DocumentStatus(str, enum.Enum):
+    UPLOADED = "uploaded"  # stored + rasterized, not yet classified/extracted
     PENDING_REVIEW = "pending_review"
     ACCEPTED = "accepted"
     UNRECOGNIZED = "unrecognized"  # classified as not-an-invoice; no extraction run
@@ -35,9 +38,10 @@ class Document(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True)  # ingestion doc_id (content hash)
     source_filename: Mapped[str] = mapped_column(String)
     file_path: Mapped[str] = mapped_column(String)  # where the original upload is stored on disk
-    doc_type: Mapped[str] = mapped_column(String)  # classification output: "invoice" / "unrecognized"
-    classification_confidence: Mapped[float] = mapped_column(Float)
-    status: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus), default=DocumentStatus.PENDING_REVIEW)
+    # Classification output ("invoice" / "unrecognized"); null until structured.
+    doc_type: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    classification_confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    status: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus), default=DocumentStatus.UPLOADED)
     validation_issues: Mapped[list] = mapped_column(JSON, default=list)  # [{rule, field, message}, ...]
     page_count: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=utcnow)

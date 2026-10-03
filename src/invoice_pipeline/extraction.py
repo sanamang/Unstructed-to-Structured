@@ -43,7 +43,10 @@ are the extracted value is correct, and the 1-indexed page number you read it fr
 (omit page for fields with no single source page, like a computed subtotal you can \
 still see printed - use the page it's printed on).
 - For each line item, give quantity, unit_price, and line_total their own confidence \
-and page."""
+and page.
+- A line item that shows only an amount (a flat fee, a parts charge) has quantity 1 \
+and unit_price equal to its line_total. That is the standard reading, not a guess, so \
+score it with the same confidence as the amount itself."""
 
 
 def extract_invoice(

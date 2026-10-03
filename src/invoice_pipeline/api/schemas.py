@@ -21,33 +21,35 @@ class ValidationIssueOut(BaseModel):
     rule: str
     field: Optional[str] = None
     message: str
+    severity: str = "error"  # "error" blocks auto-accept; "info" is a note (rows from before severity existed are errors)
 
 
 class DocumentSummary(BaseModel):
     id: str
     source_filename: str
-    doc_type: str
-    classification_confidence: float
+    doc_type: Optional[str] = None  # null until the document is structured
+    classification_confidence: Optional[float] = None
     status: str
     vendor_name: Optional[str] = None
+    invoice_number: Optional[str] = None
+    invoice_date: Optional[str] = None
     total_due: Optional[float] = None
+    currency: Optional[str] = None
     issue_count: int
+    validation_issues: list[ValidationIssueOut] = []
+    min_confidence: Optional[float] = None  # lowest per-field extraction confidence
     created_at: datetime.datetime
+    resolved_at: Optional[datetime.datetime] = None
 
 
 class DocumentDetail(DocumentSummary):
     page_count: int
     page_urls: list[str]
-    invoice_number: Optional[str] = None
-    invoice_date: Optional[str] = None
     due_date: Optional[str] = None
     subtotal: Optional[float] = None
     tax: Optional[float] = None
-    currency: Optional[str] = None
     line_items: list[LineItemOut] = []
     field_meta: dict[str, Any] = {}
-    validation_issues: list[ValidationIssueOut] = []
-    resolved_at: Optional[datetime.datetime] = None
 
 
 class ReviewRequest(BaseModel):

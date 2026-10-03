@@ -9,7 +9,7 @@ from invoice_pipeline.schema import (
     LineItem,
     LineItemExtraction,
 )
-from invoice_pipeline.validation import validate_invoice
+from invoice_pipeline.validation import INFO, fill_missing_values, structure_and_validate, validate_invoice
 
 SAMPLE_DATA = Path(__file__).resolve().parent.parent / "sample_data"
 
@@ -36,15 +36,63 @@ def test_clean_invoice_has_no_issues():
     assert result.requires_review is False
 
 
-def test_missing_required_field_is_flagged():
-    result = validate_invoice(_clean_invoice(due_date=None))
-    assert result.requires_review is True
-    assert any(i.rule == "required_field_missing" and i.field == "due_date" for i in result.issues)
+def test_missing_essential_field_is_flagged():
+    for name in ("vendor_name", "total_due"):
+        result = validate_invoice(_clean_invoice(**{name: None}))
+        assert result.requires_review is True
+        assert any(i.rule == "required_field_missing" and i.field == name for i in result.issues)
 
 
-def test_empty_line_items_is_flagged():
+def test_missing_optional_field_is_noted_but_does_not_block():
+    result = validate_invoice(_clean_invoice(due_date=None, invoice_number=None, currency=None))
+    assert result.requires_review is False
+    noted = {i.field for i in result.issues if i.rule == "optional_field_missing"}
+    assert noted == {"due_date", "invoice_number", "currency"}
+    assert all(i.severity == INFO for i in result.issues)
+
+
+def test_empty_line_items_is_noted_but_does_not_block():
     result = validate_invoice(_clean_invoice(line_items=[]))
-    assert any(i.rule == "required_field_missing" and i.field == "line_items" for i in result.issues)
+    assert result.requires_review is False
+    assert any(i.rule == "optional_field_missing" and i.field == "line_items" for i in result.issues)
+
+
+def test_missing_tax_is_filled_from_total_minus_subtotal():
+    invoice, notes = fill_missing_values(_clean_invoice(tax=None))
+    assert invoice.tax == 1.6
+    assert [(n.field, n.severity) for n in notes] == [("tax", INFO)]
+    assert validate_invoice(invoice).requires_review is False
+
+
+def test_missing_tax_with_total_equal_to_subtotal_is_zero():
+    invoice, _ = fill_missing_values(_clean_invoice(tax=None, total_due=20.0))
+    assert invoice.tax == 0.0
+
+
+def test_missing_subtotal_is_filled_from_line_items():
+    invoice, notes = fill_missing_values(_clean_invoice(subtotal=None))
+    assert invoice.subtotal == 20.0
+    assert notes[0].field == "subtotal"
+
+
+def test_missing_subtotal_and_tax_without_line_items_falls_back_to_total():
+    invoice, _ = fill_missing_values(_clean_invoice(subtotal=None, tax=None, line_items=[]))
+    assert invoice.subtotal == 21.6
+    assert invoice.tax == 0.0
+
+
+def test_fill_does_not_mask_inconsistent_totals():
+    # No tax line, and the total is *less* than the subtotal: tax becomes 0
+    # and the totals rule still catches the inconsistency.
+    invoice, _ = fill_missing_values(_clean_invoice(tax=None, total_due=15.0))
+    assert invoice.tax == 0.0
+    assert any(i.rule == "totals_mismatch" for i in validate_invoice(invoice).issues)
+
+
+def test_fill_leaves_the_original_invoice_untouched():
+    original = _clean_invoice(tax=None)
+    fill_missing_values(original)
+    assert original.tax is None
 
 
 def test_line_items_not_summing_to_subtotal_is_flagged():
@@ -111,6 +159,16 @@ def test_high_confidence_extraction_adds_no_issues():
     assert result.issues == []
 
 
+def test_low_confidence_on_an_absent_value_is_not_flagged():
+    # The model reports a field it couldn't find as null with low confidence;
+    # the optional-field rule already covers that, so it isn't double-flagged.
+    extraction = _extraction_with_confidence(low_field_confidence=0.05)
+    extraction.due_date.value = None
+    _, result = structure_and_validate(extraction, confidence_threshold=0.75)
+    assert not any(i.rule == "low_confidence_field" for i in result.issues)
+    assert result.requires_review is False
+
+
 def test_without_extraction_confidence_is_not_checked():
     # No extraction passed -> confidence never enters the picture, even
     # though a real extraction would have flagged something.
@@ -136,15 +194,17 @@ def test_clean_ground_truth_invoices_pass_validation():
         assert result.issues == [], f"{record['file']} unexpectedly failed: {result.issues}"
 
 
-def test_missing_field_ground_truth_invoices_fail_required_field_check():
+def test_missing_field_ground_truth_invoices_structure_without_review():
+    # A missing due date or tax line is structured as null / filled in, not
+    # treated as a defect.
     manifest = _load_manifest()
-    flagged = [r for r in manifest if "missing_field" in r["deliberate_issues"]]
+    flagged = [r for r in manifest if r["deliberate_issues"] == ["missing_field"]]
     assert flagged
     for record in flagged:
-        invoice = Invoice(**record["ground_truth"])
+        invoice, notes = fill_missing_values(Invoice(**record["ground_truth"]))
         result = validate_invoice(invoice)
-        assert result.requires_review
-        assert any(i.rule == "required_field_missing" for i in result.issues)
+        assert not result.requires_review, f"{record['file']}: {result.issues}"
+        assert notes or any(i.rule == "optional_field_missing" for i in result.issues)
 
 
 def test_math_error_ground_truth_invoices_fail_a_totals_check():

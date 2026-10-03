@@ -9,8 +9,8 @@ Runs classification + extraction + validation over every invoice in
 - straight-through rate (share auto-accepted by validation), plus how many
   of those auto-accepts were actually wrong - the costly failure mode, since
   nothing downstream looks at them again
-- flawed-document catch rate (share of invoices with a deliberate stage-1
-  issue that got routed to review)
+- flawed-document catch rate (share of invoices with a review-worthy stage-1
+  issue - a math error or bad due date - that got routed to review)
 - most error-prone fields, with example mismatches
 - breakdowns by template and clean-PDF vs. simulated-scan
 
@@ -37,7 +37,7 @@ from invoice_pipeline.classification import classify_document
 from invoice_pipeline.extraction import extract_invoice
 from invoice_pipeline.ingestion import ingest_file
 from invoice_pipeline.schema import Invoice, InvoiceExtraction
-from invoice_pipeline.validation import validate_invoice
+from invoice_pipeline.validation import structure_and_validate
 
 NUMBER_TOLERANCE = 0.01
 
@@ -53,6 +53,11 @@ SCALAR_FIELDS = (
 )
 NUMERIC_FIELDS = {"subtotal", "tax", "total_due", "quantity", "unit_price", "line_total"}
 LINE_ITEM_FIELDS = ("description", "quantity", "unit_price", "line_total")
+
+# Stage-1 issues that should send a document to review. "missing_field" isn't
+# one: a missing optional field (due date, tax) is structured as null/filled
+# in, not treated as a defect.
+REVIEW_WORTHY_ISSUES = {"math_error", "bad_due_date"}
 
 
 # --- Prediction -------------------------------------------------------------
@@ -162,9 +167,10 @@ def score_document(record: dict, prediction: dict, confidence_threshold: float) 
             {"field": "line_items.count", "expected": len(expected.line_items), "predicted": len(predicted.line_items)}
         )
 
-    auto_accepted = extraction is not None and not validate_invoice(
-        predicted, extraction=extraction, confidence_threshold=confidence_threshold
-    ).requires_review
+    auto_accepted = (
+        extraction is not None
+        and not structure_and_validate(extraction, confidence_threshold=confidence_threshold)[1].requires_review
+    )
 
     return DocumentScore(
         file=record["file"],
@@ -225,8 +231,8 @@ def summarize(scores: list[DocumentScore], line_item_counts: dict[str, int], exa
     ]
 
     auto_accepted = [s for s in scores if s.auto_accepted]
-    flawed = [s for s in scores if s.deliberate_issues]
-    clean = [s for s in scores if not s.deliberate_issues]
+    flawed = [s for s in scores if REVIEW_WORTHY_ISSUES & set(s.deliberate_issues)]
+    clean = [s for s in scores if not REVIEW_WORTHY_ISSUES & set(s.deliberate_issues)]
 
     by_template: dict[str, list[DocumentScore]] = defaultdict(list)
     for s in scores:

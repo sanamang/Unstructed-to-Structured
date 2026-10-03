@@ -16,8 +16,14 @@ CURRENCY_SYMBOLS = {"USD": "$", "GBP": "£", "EUR": "€"}
 PAGE_W, PAGE_H = letter
 
 
-# The ISO code is printed on every "Total Due" label: a bare "$" is ambiguous
-# (USD vs. CAD/AUD/SGD...), especially from a vendor based outside the US.
+def _total_label(currency: str) -> str:
+    """"Total Due (USD)" when amounts are printed with a symbol - a bare "$"
+    is ambiguous (USD vs. CAD/AUD/SGD...), especially from a vendor outside
+    the US. Currencies without a symbol already print their code on every
+    amount ("CAD 1,641.33"), so the label stays plain and short."""
+    return f"Total Due ({currency})" if currency in CURRENCY_SYMBOLS else "Total Due"
+
+
 def _fmt_money(amount: float | None, currency: str) -> str:
     if amount is None:
         return ""
@@ -134,7 +140,7 @@ def render_classic_table(c: Canvas, inv: dict) -> None:
         y -= 16
     y -= 4
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(box_x, y, f"Total Due ({currency}):")
+    c.drawString(box_x, y, f"{_total_label(currency)}:")
     c.drawRightString(col_total_x, y, _fmt_money(inv["total_due"], currency))
 
     c.setFont("Helvetica-Oblique", 8)
@@ -241,7 +247,7 @@ def render_modern_minimal(c: Canvas, inv: dict) -> None:
     c.setStrokeColor(colors.black)
     c.setFont("Helvetica-Bold", 13)
     c.setFillColor(accent)
-    c.drawString(box_x, y - 8, f"Total Due ({currency})")
+    c.drawString(box_x, y - 8, _total_label(currency))
     c.drawRightString(col_total_x, y - 8, _fmt_money(inv["total_due"], currency))
     c.setFillColor(colors.black)
 
@@ -313,7 +319,7 @@ def render_compact(c: Canvas, inv: dict) -> None:
         c.drawRightString(col_total_x, y, f"Tax: {_fmt_money(inv['tax'], currency)}")
         y -= 10
     c.setFont("Helvetica-Bold", 10)
-    c.drawRightString(col_total_x, y, f"Total Due ({currency}): {_fmt_money(inv['total_due'], currency)}")
+    c.drawRightString(col_total_x, y, f"{_total_label(currency)}: {_fmt_money(inv['total_due'], currency)}")
 
 
 TEMPLATES = {

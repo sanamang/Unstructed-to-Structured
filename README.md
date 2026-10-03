@@ -209,17 +209,21 @@ values matched `reference_values.json` exactly, including correctly picking
 
 `validate_invoice(invoice, extraction=None, confidence_threshold=0.75)` runs
 plain-Python business rules against a collapsed `Invoice` — no LLM involved.
-Any single issue routes the document to human review; there's no partial
-credit / auto-accept-with-a-warning.
+Each issue is either an **error** (routes the document to human review) or an
+**info** note (recorded, never blocks auto-accept).
 
 Rules:
-- **Required fields non-null**: vendor_name, invoice_number, invoice_date,
-  due_date, subtotal, tax, total_due, currency, and at least one line item
+- **Essential fields non-null** (error): vendor_name and total_due. Every other
+  field is optional. If it isn't on the document it stays null and gets an info
+  note. `fill_missing_values()` fills in a missing subtotal (sum of line items,
+  else total − tax) and a missing tax (total − subtotal, or 0). It never hides an
+  inconsistency, because the totals rule still runs on the filled values.
 - **Line items sum to subtotal** (within a 2-cent rounding tolerance)
 - **Subtotal + tax = total due** (same tolerance)
 - **Due date is after invoice date** (strictly after — equal dates are flagged too)
 - **Per-field confidence threshold**: when you pass the stage-4 `InvoiceExtraction`
-  (not just the collapsed `Invoice`), every field's confidence is checked against
+  (not just the collapsed `Invoice`), the confidence of every value actually read
+  from the document (fields reported as absent are skipped) is checked against
   `confidence_threshold` (env `CONFIDENCE_THRESHOLD`, default 0.75) — pass only
   a plain `Invoice` (e.g. a human-corrected record) to validate business rules
   without confidence in the picture
@@ -228,28 +232,33 @@ Returns a `ValidationResult` with a list of `ValidationIssue(rule, field,
 message)` and a `.requires_review` bool.
 
 The test suite validates every fixture in `sample_data/ground_truth/` and
-confirms each deliberate-issue category from stage 1 trips the rule you'd
-expect (`missing_field` → `required_field_missing`, `math_error` →
-`line_items_sum_mismatch`/`totals_mismatch`, `bad_due_date` →
-`due_date_not_after_invoice_date`), and that every clean invoice passes clean
-— a closed loop between the synthetic data generator and the validator.
+confirms each review-worthy category from stage 1 trips the rule you'd expect
+(`math_error` → `line_items_sum_mismatch`/`totals_mismatch`, `bad_due_date` →
+`due_date_not_after_invoice_date`). It also checks that `missing_field`
+invoices are structured without needing review and that every clean invoice
+passes clean. This closes the loop between the synthetic data generator and
+the validator.
 
 ## Stage 6 — Review queue (FastAPI + React)
 
-Ties stages 2–5 into `pipeline.process_document()`: ingest → classify → (if
-invoice) extract → validate → persist a `Document` row (+ an `InvoiceRecord`
-for invoices). Idempotent by content hash — re-uploading the same file
-returns the existing row instead of re-billing classification/extraction.
+Ties stages 2–5 together in two steps. `pipeline.ingest_upload()` stores the
+file, renders its pages and saves a `Document` in `uploaded` status, with no
+model calls. `pipeline.structure_document()` then classifies it and, if it's
+an invoice, extracts, validates and saves an `InvoiceRecord`.
+`process_document()` runs both. Uploads are deduplicated by content hash:
+re-uploading the same file returns the existing row, and a document can only
+be structured once, so it's never billed twice.
 
-**Data model** (`models.py`): `Document` (status: `pending_review` /
-`accepted` / `unrecognized`, classification result, validation issues as
+**Data model** (`models.py`): `Document` (status: `uploaded` /
+`pending_review` / `accepted` / `unrecognized`, classification result, validation issues as
 JSON), `InvoiceRecord` (current field values + the raw stage-4 confidence/page
 `field_meta`, one-to-one with a Document), `Correction` (append-only log of
 every human edit: field, original value, corrected value, timestamp — the
 eval/feedback data called for in the spec).
 
 **API** (`api/main.py`), served at `http://localhost:8000`:
-- `POST /api/upload` — multipart file upload, runs the full pipeline synchronously
+- `POST /api/upload`: multipart file upload. Stores the file and renders its pages only (`uploaded`)
+- `POST /api/documents/{id}/structure`: classify, extract and validate an uploaded document (409 if already structured)
 - `GET /api/documents?status=pending_review` — list, optionally filtered by status
 - `GET /api/documents/{id}` — full detail: fields, `field_meta`, validation issues, page image URLs
 - `POST /api/documents/{id}/review` — apply field edits, log each changed field to `Correction`, mark `accepted`
