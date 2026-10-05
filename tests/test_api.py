@@ -8,7 +8,13 @@ from invoice_pipeline import models  # noqa: F401
 from invoice_pipeline.api import main as api_main
 from invoice_pipeline.classification import DocumentClassification
 from invoice_pipeline.db import Base, make_session_factory
-from invoice_pipeline.schema import ExtractedNumber, ExtractedString, InvoiceExtraction, LineItemExtraction
+from invoice_pipeline.schema import (
+    AdditionalField,
+    ExtractedNumber,
+    ExtractedString,
+    InvoiceExtraction,
+    LineItemExtraction,
+)
 
 
 def _clean_extraction() -> InvoiceExtraction:
@@ -98,6 +104,36 @@ def test_upload_stores_document_without_structuring_it(client, monkeypatch):
     assert body["doc_type"] is None
     assert body["vendor_name"] is None
     assert body["page_urls"] == [f"/static/pages/{body['id']}/page_001.png"]
+
+
+def test_upload_text_and_extensionless_files(client):
+    text = client.post("/api/upload", files={"file": ("bill.txt", b"lawn care - mowed 3x @ 40", "text/plain")})
+    assert text.status_code == 200
+    assert text.json()["page_count"] == 1
+    with open("manual_test_pdfs/test_invoice_01.pdf", "rb") as f:
+        bare = client.post("/api/upload", files={"file": ("scan", f, "application/octet-stream")})
+    assert bare.status_code == 200
+
+
+def test_upload_of_unreadable_file_is_rejected_cleanly(client):
+    response = client.post("/api/upload", files={"file": ("x.bin", bytes(range(256)) * 4, "application/octet-stream")})
+    assert response.status_code == 415
+
+
+def test_structure_keeps_document_kind_and_additional_fields(client, monkeypatch):
+    extraction = _clean_extraction()
+    extraction.additional_fields = [AdditionalField(label="PO number", value="88-4410")]
+    monkeypatch.setattr(pipeline_module, "extract_invoice", lambda doc, client=None: extraction)
+    monkeypatch.setattr(
+        pipeline_module,
+        "classify_document",
+        lambda doc, client=None: DocumentClassification(
+            doc_type="invoice", document_kind="receipt", confidence=0.9, reasoning="ok"
+        ),
+    )
+    body = _upload_and_structure(client).json()
+    assert body["document_kind"] == "receipt"
+    assert body["additional_fields"] == [{"label": "PO number", "value": "88-4410"}]
 
 
 def test_structure_extracts_and_validates_uploaded_document(client):

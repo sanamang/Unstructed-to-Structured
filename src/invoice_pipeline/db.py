@@ -47,6 +47,9 @@ _POSTGRES_MIGRATIONS = (
     "ALTER TYPE documentstatus ADD VALUE IF NOT EXISTS 'UPLOADED' BEFORE 'PENDING_REVIEW'",
     "ALTER TABLE documents ALTER COLUMN doc_type DROP NOT NULL",
     "ALTER TABLE documents ALTER COLUMN classification_confidence DROP NOT NULL",
+    # any messy billing document is accepted, not just formal invoices
+    "ALTER TABLE documents ADD COLUMN IF NOT EXISTS document_kind VARCHAR",
+    "ALTER TABLE invoice_records ADD COLUMN IF NOT EXISTS additional_fields JSON DEFAULT '[]'",
 )
 
 

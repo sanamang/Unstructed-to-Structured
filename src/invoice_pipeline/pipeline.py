@@ -83,6 +83,7 @@ def structure_document(
     classification = classify_document(doc, client=client)
     record.doc_type = classification.doc_type
     record.classification_confidence = classification.confidence
+    record.document_kind = classification.document_kind or None
 
     if classification.doc_type != "invoice":
         record.status = DocumentStatus.UNRECOGNIZED
@@ -109,6 +110,7 @@ def structure_document(
         total_due=invoice.total_due,
         currency=invoice.currency,
         line_items=[li.model_dump() for li in invoice.line_items],
+        additional_fields=[f.model_dump() for f in invoice.additional_fields],
         field_meta=extraction.model_dump(),
     )
     session.commit()

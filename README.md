@@ -1,9 +1,13 @@
 # Invoice Extraction Pipeline
 
-An end-to-end unstructured-to-structured document extraction pipeline for vendor
-invoices (PDF and scanned images): classify → extract fields with confidence
-scores → validate against business rules → route low-confidence/failing docs to
-a human review queue → write accepted records to a system-of-record table.
+An end-to-end unstructured-to-structured document extraction pipeline for
+billing documents of any shape: formal invoices, receipts, utility bills,
+emails, handwritten notes, phone photos and scans, in any layout or language.
+It classifies each document, extracts fields with confidence scores, validates
+them against business rules, routes low-confidence or failing documents to a
+human review queue, and writes accepted records to a system-of-record table.
+Missing amounts are worked out from the others or set to 0, so every billing
+document comes out as a complete structured invoice.
 
 Built as a staged project. Each stage is independently runnable and testable.
 
@@ -153,9 +157,22 @@ print(doc.doc_id, doc.page_count)       # e.g. "a1b2c3d4e5f6..." 1
 save_pages(doc, "var/pages")             # writes var/pages/<doc_id>/page_001.png ...
 ```
 
-Handles both PDF (rasterized via PyMuPDF) and image input (PNG/JPEG/TIFF/BMP,
-loaded directly as a single page) through the same `ingest_file`/`ingest_bytes`
-entrypoints.
+Accepts whatever gets dropped in, through the same `ingest_file`/`ingest_bytes`
+entrypoints:
+- **PDF**, rasterized via PyMuPDF
+- **Images**: PNG, JPEG, TIFF (every page of a multi-page fax/scan), BMP, WEBP,
+  GIF, and HEIC/HEIF iPhone photos. Each is turned upright from its EXIF
+  orientation, and transparency is flattened onto white.
+- **Text-like files**: `.txt`, `.md`, `.csv`, `.json`, `.xml`, HTML, laid out on
+  letter-size pages. An `.eml` email is decoded to its headers and body, and any
+  PDF or image attachments are appended as further pages.
+- Other MuPDF formats (XPS, EPUB, SVG...)
+- **No or unknown extension**: the type is sniffed from the content. An
+  unreadable or empty file raises `UnsupportedFileTypeError`, which the API
+  returns as a 415.
+
+Pages are capped at 2400px on the long edge, and a page whose PNG would be
+too large for the API is sent as JPEG.
 
 A few plain sample PDFs for manually exercising ingestion (and later stages)
 are generated separately from the eval fixtures in `sample_data/`:
@@ -172,10 +189,16 @@ script, they're just for quick manual runs.
 
 `classify_document(doc)` sends the ingested page image(s) to Claude with a
 structured `DocumentClassification` output (`doc_type`: `"invoice"` or
-`"unrecognized"`, a confidence score, and one-sentence reasoning), via
-`client.messages.parse(..., output_format=DocumentClassification)`. Runs
-before extraction so the pipeline can gate on document type before spending
-tokens extracting fields from something that isn't an invoice.
+`"unrecognized"`, a free-text `document_kind` such as "receipt" or "utility
+bill", a confidence score, and one-sentence reasoning), via
+`client.messages.parse(..., output_format=DocumentClassification)`.
+
+"invoice" is deliberately broad. It covers any document that charges, bills
+or records payment for goods or services, however informal: receipts,
+statements, an email listing work and a price, a scribbled note. Only
+documents with no charge at all (a blank page, a contract with no amounts, a
+purchase order or quote) are "unrecognized". It runs before extraction so no
+tokens are spent extracting fields from those.
 
 ## Stage 4 — Extraction
 
@@ -183,10 +206,17 @@ tokens extracting fields from something that isn't an invoice.
 invoice number, dates, line items, subtotal, tax, total due, currency — as an
 `InvoiceExtraction`, where **every field is wrapped with its own `confidence`
 (0–1) and source `page` number**, via the same structured-output mechanism.
-The prompt explicitly warns the model about decoy fields (e.g. an "Amount
-Paid: $0.00" line sitting right above "Total Due" in the `modern_minimal`
-sample template) and tells it to prefer visual position/emphasis over nearest
-matching label. Call `.to_invoice()` on the result to collapse it down to a
+Anything else on the document (PO number, account number, bill-to, payment
+terms, deposits, notes) goes into `additional_fields` as label/value pairs, so
+nothing is dropped.
+
+The prompt doesn't expect particular labels or a particular layout. It defines
+each field by meaning ("whoever is charging", "the final amount this bill
+asks to be paid") and covers line items written as sentences, non-English
+documents and comma decimals, and dates written without a year (today's date
+is passed in). It warns about decoys such as an "Amount Paid" line, previous
+balances, account totals and unapplied discounts. It reports missing numbers
+as null rather than guessing, and the validation stage fills them in. Call `.to_invoice()` on the result to collapse it down to a
 plain `Invoice` for validation or comparison against ground truth.
 
 Both stages default to `claude-opus-5` (best layout/position understanding),
@@ -212,12 +242,22 @@ plain-Python business rules against a collapsed `Invoice` — no LLM involved.
 Each issue is either an **error** (routes the document to human review) or an
 **info** note (recorded, never blocks auto-accept).
 
+Missing numbers are never left empty:
+- **Line items**: missing numbers are worked out from the others
+  (quantity × unit price = line total, and an amount-only line is quantity 1);
+  anything that still can't be worked out is 0.
+- **subtotal**: sum of line items, else total − tax, else 0. **tax**:
+  total − subtotal, else 0. **total_due**: subtotal + tax.
+
+Each filled value gets an info note. Filling never hides an inconsistency,
+because the totals rules still run on the filled values. Missing text fields
+and dates (invoice number, dates, currency) stay null with an info note.
+
 Rules:
-- **Essential fields non-null** (error): vendor_name and total_due. Every other
-  field is optional. If it isn't on the document it stays null and gets an info
-  note. `fill_missing_values()` fills in a missing subtotal (sum of line items,
-  else total − tax) and a missing tax (total − subtotal, or 0). It never hides an
-  inconsistency, because the totals rule still runs on the filled values.
+- **Vendor present** (error): vendor_name is the only required field.
+- **Some amount present** (error, `no_amount_found`): if nothing on the
+  document had a number, the amounts are 0 and the document goes to review
+  rather than being auto-accepted as a $0 bill.
 - **Line items sum to subtotal** (within a 2-cent rounding tolerance)
 - **Subtotal + tax = total due** (same tolerance)
 - **Due date is after invoice date** (strictly after — equal dates are flagged too)
@@ -370,4 +410,4 @@ SQLite database with `classify_document`/`extract_invoice` monkeypatched,
 export (`test_export.py`, plus the API download endpoints), and evaluation
 scoring (`test_evaluation.py`) using fake predictors built from ground truth,
 which checks that perfect predictions score 100% and every flawed invoice is
-caught — none of the 64 tests need a live API key, credit, or a running Postgres.
+caught — none of the 99 tests need a live API key, credit, or a running Postgres.

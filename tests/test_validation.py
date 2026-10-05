@@ -36,11 +36,39 @@ def test_clean_invoice_has_no_issues():
     assert result.requires_review is False
 
 
-def test_missing_essential_field_is_flagged():
-    for name in ("vendor_name", "total_due"):
-        result = validate_invoice(_clean_invoice(**{name: None}))
-        assert result.requires_review is True
-        assert any(i.rule == "required_field_missing" and i.field == name for i in result.issues)
+def test_missing_vendor_is_flagged():
+    result = validate_invoice(_clean_invoice(vendor_name=None))
+    assert result.requires_review is True
+    assert any(i.rule == "required_field_missing" and i.field == "vendor_name" for i in result.issues)
+
+
+def test_missing_total_is_filled_from_subtotal_plus_tax():
+    invoice, notes = fill_missing_values(_clean_invoice(total_due=None))
+    assert invoice.total_due == 21.6
+    assert [(n.field, n.severity) for n in notes] == [("total_due", INFO)]
+    assert validate_invoice(invoice).requires_review is False
+
+
+def test_only_line_items_fills_every_amount():
+    invoice, notes = fill_missing_values(_clean_invoice(subtotal=None, tax=None, total_due=None))
+    assert (invoice.subtotal, invoice.tax, invoice.total_due) == (20.0, 0.0, 20.0)
+    assert {n.field for n in notes} == {"subtotal", "tax", "total_due"}
+    assert validate_invoice(invoice).requires_review is False
+
+
+def test_no_amounts_at_all_become_zero_and_go_to_review():
+    invoice, _ = fill_missing_values(_clean_invoice(subtotal=None, tax=None, total_due=None, line_items=[]))
+    assert (invoice.subtotal, invoice.tax, invoice.total_due) == (0.0, 0.0, 0.0)
+    result = validate_invoice(invoice)
+    assert result.requires_review is True
+    assert any(i.rule == "no_amount_found" for i in result.issues)
+
+
+def test_line_items_without_prices_fall_back_to_total():
+    # A total with unpriced line items: the subtotal comes from the total, not the 0 line sum.
+    unpriced = [LineItem(description="Hedge trim", quantity=0, unit_price=0, line_total=0)]
+    invoice, _ = fill_missing_values(_clean_invoice(line_items=unpriced, subtotal=None, tax=None))
+    assert (invoice.subtotal, invoice.tax) == (21.6, 0.0)
 
 
 def test_missing_optional_field_is_noted_but_does_not_block():
@@ -157,6 +185,15 @@ def test_high_confidence_extraction_adds_no_issues():
     extraction = _extraction_with_confidence(low_field_confidence=0.95)
     result = validate_invoice(_clean_invoice(), extraction=extraction, confidence_threshold=0.75)
     assert result.issues == []
+
+
+def test_structure_notes_line_items_with_missing_numbers():
+    extraction = _extraction_with_confidence(low_field_confidence=0.95)
+    extraction.line_items[0].quantity = ExtractedNumber(value=None, confidence=0.1)
+    invoice, result = structure_and_validate(extraction)
+    assert invoice.line_items[0].quantity == 2.0
+    assert any(i.rule == "value_filled_in" and i.field == "line_items[0]" for i in result.issues)
+    assert result.requires_review is False
 
 
 def test_low_confidence_on_an_absent_value_is_not_flagged():

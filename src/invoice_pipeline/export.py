@@ -27,6 +27,7 @@ from invoice_pipeline.models import Document, DocumentStatus
 INVOICE_COLUMNS = (
     "document_id",
     "source_filename",
+    "document_kind",
     "vendor_name",
     "invoice_number",
     "invoice_date",
@@ -36,6 +37,7 @@ INVOICE_COLUMNS = (
     "total_due",
     "currency",
     "line_item_count",
+    "additional_fields",  # JSON list of {label, value}
     "human_corrected",
     "resolved_at",
 )
@@ -70,6 +72,7 @@ def accepted_invoices(session: Session, since: Optional[datetime.datetime] = Non
             {
                 "document_id": document.id,
                 "source_filename": document.source_filename,
+                "document_kind": document.document_kind,
                 "vendor_name": invoice.vendor_name,
                 "invoice_number": invoice.invoice_number,
                 "invoice_date": invoice.invoice_date,
@@ -79,6 +82,7 @@ def accepted_invoices(session: Session, since: Optional[datetime.datetime] = Non
                 "total_due": invoice.total_due,
                 "currency": invoice.currency,
                 "line_items": list(invoice.line_items or []),
+                "additional_fields": list(invoice.additional_fields or []),
                 "human_corrected": len(document.corrections) > 0,
                 "resolved_at": document.resolved_at.isoformat() if document.resolved_at else None,
             }
@@ -97,6 +101,7 @@ def invoices_csv(records: list[dict]) -> str:
     for record in records:
         row = {column: record.get(column) for column in INVOICE_COLUMNS}
         row["line_item_count"] = len(record["line_items"])
+        row["additional_fields"] = json.dumps(record["additional_fields"])
         writer.writerow(row)
     return buffer.getvalue()
 

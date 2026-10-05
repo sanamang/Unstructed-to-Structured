@@ -1307,3 +1307,7 @@ table.line-items input {
   }
 
 }
+
+.doc-kind {
+  text-transform: capitalize;
+}

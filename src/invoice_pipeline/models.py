@@ -41,6 +41,8 @@ class Document(Base):
     # Classification output ("invoice" / "unrecognized"); null until structured.
     doc_type: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     classification_confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # What the document actually is ("receipt", "utility bill", "email", ...).
+    document_kind: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     status: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus), default=DocumentStatus.UPLOADED)
     validation_issues: Mapped[list] = mapped_column(JSON, default=list)  # [{rule, field, message}, ...]
     page_count: Mapped[int] = mapped_column(Integer, default=1)
@@ -68,6 +70,8 @@ class InvoiceRecord(Base):
     total_due: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     currency: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     line_items: Mapped[list] = mapped_column(JSON, default=list)
+    # Everything else on the document, as [{label, value}, ...].
+    additional_fields: Mapped[list] = mapped_column(JSON, default=list)
 
     # Raw stage-4 InvoiceExtraction dump (value/confidence/page per field) -
     # the review UI reads this to show confidence badges, independent of

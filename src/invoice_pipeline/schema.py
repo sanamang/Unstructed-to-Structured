@@ -20,6 +20,36 @@ class LineItem(BaseModel):
     line_total: float
 
 
+class AdditionalField(BaseModel):
+    """Anything on the document outside the fixed invoice fields (PO number,
+    account number, bill-to, payment terms, deposits, notes...), kept as a
+    label/value pair so no information is dropped whatever the layout."""
+
+    label: str
+    value: str
+
+
+def complete_line_item(
+    quantity: Optional[float], unit_price: Optional[float], line_total: Optional[float]
+) -> tuple[float, float, float]:
+    """Fill a line item's missing numbers from the ones that are present
+    (quantity x unit price = line total; an amount-only line is quantity 1),
+    and set anything that still can't be worked out to 0."""
+    q, p, t = quantity, unit_price, line_total
+    if t is None and q is not None and p is not None:
+        t = round(q * p, 2)
+    if t is not None:
+        if q is None and p:
+            q = round(t / p, 4)
+        elif q is None:
+            q, p = 1.0, t
+        if p is None:
+            p = round(t / q, 4) if q else t
+    elif p is not None:  # a price with no quantity or total
+        q, t = 1.0, p
+    return (q or 0.0, p or 0.0, t or 0.0)
+
+
 class Invoice(BaseModel):
     vendor_name: Optional[str] = None
     invoice_number: Optional[str] = None
@@ -30,6 +60,7 @@ class Invoice(BaseModel):
     tax: Optional[float] = None
     total_due: Optional[float] = None
     currency: Optional[str] = None
+    additional_fields: list[AdditionalField] = []
 
 
 class ExtractedString(BaseModel):
@@ -65,24 +96,31 @@ class InvoiceExtraction(BaseModel):
     tax: ExtractedNumber
     total_due: ExtractedNumber
     currency: ExtractedString
+    additional_fields: list[AdditionalField] = []
 
     def to_invoice(self) -> Invoice:
+        line_items = []
+        for li in self.line_items:
+            quantity, unit_price, line_total = complete_line_item(
+                li.quantity.value, li.unit_price.value, li.line_total.value
+            )
+            line_items.append(
+                LineItem(
+                    description=li.description.value or "",
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    line_total=line_total,
+                )
+            )
         return Invoice(
             vendor_name=self.vendor_name.value,
             invoice_number=self.invoice_number.value,
             invoice_date=self.invoice_date.value,
             due_date=self.due_date.value,
-            line_items=[
-                LineItem(
-                    description=li.description.value or "",
-                    quantity=li.quantity.value if li.quantity.value is not None else 0.0,
-                    unit_price=li.unit_price.value if li.unit_price.value is not None else 0.0,
-                    line_total=li.line_total.value if li.line_total.value is not None else 0.0,
-                )
-                for li in self.line_items
-            ],
+            line_items=line_items,
             subtotal=self.subtotal.value,
             tax=self.tax.value,
             total_due=self.total_due.value,
             currency=self.currency.value,
+            additional_fields=self.additional_fields,
         )

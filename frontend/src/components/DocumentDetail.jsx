@@ -42,6 +42,8 @@ function initialFields(document) {
     tax: document.tax,
     total_due: document.total_due,
     line_items: document.line_items.map((li) => ({ ...li })),
+    // Read-only: shown and exported, not edited.
+    additional_fields: (document.additional_fields || []).map((f) => ({ ...f })),
   }
 }
 
@@ -252,7 +254,7 @@ export default function DocumentDetail({ document, onSave, saving, onStructure, 
     return (
       <main className="detail detail-empty">
         <Icon name="file-text" size={32} />
-        <p>Select a document from the queue, or drop a PDF anywhere to upload it.</p>
+        <p>Select a document from the queue, or drop any invoice, receipt, photo or email anywhere to upload it.</p>
       </main>
     )
   }
@@ -314,6 +316,12 @@ export default function DocumentDetail({ document, onSave, saving, onStructure, 
               </strong>
             </span>
           )}
+          {document.document_kind && (
+            <>
+              <span className="dot-sep">•</span>
+              <span className="doc-kind">{document.document_kind}</span>
+            </>
+          )}
           {document.resolved_at && (
             <>
               <span className="dot-sep">•</span>
@@ -362,8 +370,8 @@ export default function DocumentDetail({ document, onSave, saving, onStructure, 
           <div>
             <h3>Not recognized as an invoice</h3>
             <p>
-              The classifier was {formatPercent(document.classification_confidence)} confident this document is not a
-              vendor invoice, so no fields were extracted.
+              The classifier was {formatPercent(document.classification_confidence)} confident this document has no
+              charges on it (not an invoice, receipt or bill), so no fields were extracted.
             </p>
           </div>
         </div>
@@ -511,6 +519,20 @@ export default function DocumentDetail({ document, onSave, saving, onStructure, 
                     </span>
                   </div>
                 </div>
+
+                {fields.additional_fields.length > 0 && (
+                  <>
+                    <h4>Other details on the document</h4>
+                    <div className="field-grid">
+                      {fields.additional_fields.map((f, i) => (
+                        <label key={i} className="field">
+                          <span className="field-label">{f.label}</span>
+                          <input readOnly value={f.value} />
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                )}
               </>
             )}
           </section>

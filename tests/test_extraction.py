@@ -1,10 +1,12 @@
 from invoice_pipeline.extraction import extract_invoice
 from invoice_pipeline.ingestion import ingest_file
 from invoice_pipeline.schema import (
+    AdditionalField,
     ExtractedNumber,
     ExtractedString,
     InvoiceExtraction,
     LineItemExtraction,
+    complete_line_item,
 )
 
 
@@ -72,8 +74,29 @@ def test_extraction_to_invoice_collapses_wrappers_to_plain_values():
     assert invoice.line_items[0].line_total == 20.0
 
 
-def test_extraction_to_invoice_handles_null_line_item_numbers():
-    extraction = _sample_extraction()
+def test_extraction_to_invoice_derives_missing_line_item_numbers():
+    extraction = _sample_extraction()  # 2 x 10.00 = 20.00
     extraction.line_items[0].quantity.value = None
-    invoice = extraction.to_invoice()
-    assert invoice.line_items[0].quantity == 0.0
+    assert extraction.to_invoice().line_items[0].quantity == 2.0
+
+
+def test_extraction_to_invoice_zeroes_line_item_numbers_it_cannot_derive():
+    extraction = _sample_extraction()
+    item = extraction.line_items[0]
+    item.quantity.value = item.unit_price.value = item.line_total.value = None
+    line = extraction.to_invoice().line_items[0]
+    assert (line.quantity, line.unit_price, line.line_total) == (0.0, 0.0, 0.0)
+
+
+def test_complete_line_item_cases():
+    assert complete_line_item(3, 40.0, None) == (3, 40.0, 120.0)  # total from qty x price
+    assert complete_line_item(None, None, 55.0) == (1.0, 55.0, 55.0)  # amount-only line
+    assert complete_line_item(4, None, 22.0) == (4, 5.5, 22.0)  # price from total / qty
+    assert complete_line_item(None, 7.5, None) == (1.0, 7.5, 7.5)  # a price alone
+    assert complete_line_item(2, None, None) == (2, 0.0, 0.0)  # nothing to work from
+
+
+def test_extraction_carries_additional_fields_through():
+    extraction = _sample_extraction()
+    extraction.additional_fields = [AdditionalField(label="PO number", value="88-4410")]
+    assert extraction.to_invoice().additional_fields[0].value == "88-4410"

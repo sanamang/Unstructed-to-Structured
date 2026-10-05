@@ -6,11 +6,13 @@ consistent, dates must be ordered sensibly, the essential fields must be
 present, and (when extraction confidence is available) every value that was
 read must clear a threshold.
 
-Only vendor_name and total_due are essential - without them there's nothing
-to pay. Every other field is optional: if it's simply not on the document it
-stays null (or, for tax/subtotal, is filled in by `fill_missing_values`) and
-is recorded as an "info" note, which never blocks auto-accept. Any "error"
-issue routes the document to review.
+No field is required for a document to be structured. A missing amount is
+worked out from the other amounts where possible and otherwise set to 0 (see
+`fill_missing_values`); a missing text field or date stays null. Each is
+recorded as an "info" note, which never blocks auto-accept. Two gaps do
+route to review, because the record can't be paid without a person looking
+at it: no vendor, and no amount anywhere on the document. Any "error" issue
+routes the document to review.
 """
 
 from __future__ import annotations
@@ -24,8 +26,10 @@ from invoice_pipeline.schema import Invoice, InvoiceExtraction
 
 AMOUNT_TOLERANCE = 0.02  # cents-level rounding slack across summed line items
 
-REQUIRED_FIELDS = ("vendor_name", "total_due")
-OPTIONAL_FIELDS = ("invoice_number", "invoice_date", "due_date", "subtotal", "tax", "currency")
+REQUIRED_FIELDS = ("vendor_name",)
+# Amounts never stay null - fill_missing_values sets them - so only text and
+# date fields can be reported missing here.
+OPTIONAL_FIELDS = ("invoice_number", "invoice_date", "due_date", "currency")
 
 ERROR = "error"  # routes the document to review
 INFO = "info"  # recorded for transparency, never blocks auto-accept
@@ -48,51 +52,82 @@ class ValidationResult:
         return any(issue.severity == ERROR for issue in self.issues)
 
 
-def fill_missing_values(invoice: Invoice) -> tuple[Invoice, list[ValidationIssue]]:
-    """Fill in amounts that can be worked out from the rest of the invoice,
-    so a document missing them still structures into a complete record.
-    Returns the filled invoice plus an info note per filled field.
+def _filled(name: str, value: float, how: str) -> ValidationIssue:
+    return ValidationIssue(
+        rule="value_filled_in",
+        field=name,
+        message=f"{name} isn't on the document; set to {value:.2f} ({how})",
+        severity=INFO,
+    )
 
-    - subtotal: sum of the line items, else total_due - tax
-    - tax: total_due - subtotal (an invoice with no tax line whose total
-      equals its subtotal gets 0)
+
+def fill_missing_values(invoice: Invoice) -> tuple[Invoice, list[ValidationIssue]]:
+    """Fill in every missing amount, so any document structures into a
+    complete record. Each amount is worked out from the others where
+    possible, else set to 0. Returns the filled invoice plus an info note per
+    filled field. It never hides an inconsistency: the totals rules still
+    run on the filled values.
+
+    - subtotal: sum of the line items, else total_due - tax, else 0
+    - tax: total_due - subtotal (0 if that isn't positive), else 0
+    - total_due: subtotal + tax
     """
     invoice = invoice.model_copy(deep=True)
     notes: list[ValidationIssue] = []
+    line_sum = round(sum(item.line_total for item in invoice.line_items), 2)
 
     if invoice.subtotal is None:
-        if invoice.line_items:
-            invoice.subtotal = round(sum(item.line_total for item in invoice.line_items), 2)
-            how = "the sum of the line items"
+        if invoice.line_items and (line_sum or invoice.total_due is None):
+            invoice.subtotal, how = line_sum, "the sum of the line items"
         elif invoice.total_due is not None:
-            invoice.subtotal = round(invoice.total_due - (invoice.tax or 0.0), 2)
-            how = "total due minus tax"
+            invoice.subtotal, how = round(invoice.total_due - (invoice.tax or 0.0), 2), "total due minus tax"
         else:
-            how = None
-        if how:
+            invoice.subtotal, how = 0.0, "no amounts to work it out from"
+        notes.append(_filled("subtotal", invoice.subtotal, how))
+
+    if invoice.tax is None:
+        if invoice.total_due is not None:
+            difference = round(invoice.total_due - invoice.subtotal, 2)
+            invoice.tax = difference if difference > 0 else 0.0
+            how = "total due minus subtotal" if invoice.tax else "no tax charged"
+        else:
+            invoice.tax, how = 0.0, "no tax shown"
+        notes.append(_filled("tax", invoice.tax, how))
+
+    if invoice.total_due is None:
+        invoice.total_due = round(invoice.subtotal + invoice.tax, 2)
+        notes.append(_filled("total_due", invoice.total_due, "subtotal plus tax"))
+
+    return invoice, notes
+
+
+def _line_item_fill_notes(extraction: InvoiceExtraction) -> list[ValidationIssue]:
+    """One info note per line item that had numbers missing on the document
+    (InvoiceExtraction.to_invoice fills them in)."""
+    notes = []
+    for i, item in enumerate(extraction.line_items):
+        missing = [
+            name
+            for name, extracted in (
+                ("quantity", item.quantity),
+                ("unit_price", item.unit_price),
+                ("line_total", item.line_total),
+            )
+            if extracted.value is None
+        ]
+        if missing:
             notes.append(
                 ValidationIssue(
                     rule="value_filled_in",
-                    field="subtotal",
-                    message=f"subtotal isn't on the document; set to {invoice.subtotal:.2f} ({how})",
+                    field=f"line_items[{i}]",
+                    message=(
+                        f"line item {i + 1} has no {', '.join(missing)} on the document; "
+                        "worked out from its other numbers, else set to 0"
+                    ),
                     severity=INFO,
                 )
             )
-
-    if invoice.tax is None and invoice.total_due is not None and invoice.subtotal is not None:
-        difference = round(invoice.total_due - invoice.subtotal, 2)
-        invoice.tax = difference if difference > 0 else 0.0
-        how = "total due minus subtotal" if invoice.tax else "no tax charged"
-        notes.append(
-            ValidationIssue(
-                rule="value_filled_in",
-                field="tax",
-                message=f"tax isn't on the document; set to {invoice.tax:.2f} ({how})",
-                severity=INFO,
-            )
-        )
-
-    return invoice, notes
+    return notes
 
 
 def _check_required_fields(invoice: Invoice) -> list[ValidationIssue]:
@@ -117,6 +152,17 @@ def _check_required_fields(invoice: Invoice) -> list[ValidationIssue]:
                 field="line_items",
                 message="no line items on the document",
                 severity=INFO,
+            )
+        )
+    has_amount = any(
+        value for value in (invoice.subtotal, invoice.tax, invoice.total_due)
+    ) or any(item.line_total for item in invoice.line_items)
+    if not has_amount:
+        issues.append(
+            ValidationIssue(
+                rule="no_amount_found",
+                field="total_due",
+                message="no amount could be read from the document; amounts set to 0",
             )
         )
     return issues
@@ -249,6 +295,7 @@ def structure_and_validate(
     """Collapse an extraction to a plain Invoice, fill in derivable amounts,
     and validate it. This is the decision the pipeline (and eval) act on."""
     invoice, notes = fill_missing_values(extraction.to_invoice())
+    notes += _line_item_fill_notes(extraction)
     result = validate_invoice(invoice, extraction=extraction, confidence_threshold=confidence_threshold)
     result.issues = notes + result.issues
     return invoice, result

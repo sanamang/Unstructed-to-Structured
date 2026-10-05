@@ -13,7 +13,9 @@ const EXPORTS = [
   ['JSON', 'invoices.json'],
 ]
 
-const ACCEPTED_TYPES = '.pdf,.png,.jpg,.jpeg,.tif,.tiff,.bmp'
+// Suggestions for the file picker only; the backend reads anything it can (and sniffs unknown types).
+const ACCEPTED_TYPES =
+  '.pdf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.gif,.heic,.heif,.txt,.eml,.html,.htm,.md,.csv,image/*,text/*'
 
 function matchesQuery(doc, query) {
   if (!query) return true
@@ -190,8 +192,8 @@ export default function App() {
         <div className="drop-overlay">
           <div>
             <Icon name="upload" size={40} />
-            <p>Drop invoices to upload</p>
-            <span>PDF, PNG, JPG, TIFF or BMP</span>
+            <p>Drop invoices, receipts or bills to upload</p>
+            <span>PDFs, photos and scans, emails or text files</span>
           </div>
         </div>
       )}

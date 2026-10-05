@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 from invoice_pipeline.api.schemas import DocumentDetail, DocumentSummary, ReviewRequest
 from invoice_pipeline.db import SessionLocal, init_db
 from invoice_pipeline.export import accepted_invoices, invoices_csv, line_items_csv, to_json
+from invoice_pipeline.ingestion import UnsupportedFileTypeError
 from invoice_pipeline.models import Correction, Document, DocumentStatus, InvoiceRecord, utcnow
 from invoice_pipeline.pipeline import PAGES_DIR, UPLOADS_DIR, AlreadyStructuredError, ingest_upload, structure_document
 
@@ -101,6 +102,7 @@ def _to_summary(document: Document) -> DocumentSummary:
         source_filename=document.source_filename,
         doc_type=document.doc_type,
         classification_confidence=document.classification_confidence,
+        document_kind=document.document_kind,
         status=document.status.value,
         vendor_name=invoice.vendor_name if invoice else None,
         invoice_number=invoice.invoice_number if invoice else None,
@@ -125,6 +127,7 @@ def _to_detail(document: Document) -> DocumentDetail:
         subtotal=invoice.subtotal if invoice else None,
         tax=invoice.tax if invoice else None,
         line_items=invoice.line_items if invoice else [],
+        additional_fields=(invoice.additional_fields or []) if invoice else [],
         field_meta=invoice.field_meta if invoice else {},
     )
 
@@ -169,12 +172,15 @@ def export_accepted(filename: str, session: Session = Depends(get_session)):
 
 @app.post("/api/upload", response_model=DocumentDetail)
 def upload_document(file: UploadFile = File(...), session: Session = Depends(get_session)):
-    suffix = Path(file.filename or "upload").suffix or ".pdf"
+    # No extension is fine: ingestion sniffs the type from the content.
+    suffix = Path(file.filename or "upload").suffix
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(file.file.read())
         tmp_path = Path(tmp.name)
     try:
         document = ingest_upload(tmp_path, session=session, original_filename=file.filename or tmp_path.name)
+    except UnsupportedFileTypeError as e:
+        raise HTTPException(415, str(e))
     finally:
         tmp_path.unlink(missing_ok=True)
     return _to_detail(document)

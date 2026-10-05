@@ -17,6 +17,11 @@ class LineItemOut(BaseModel):
     line_total: Optional[float] = None
 
 
+class AdditionalFieldOut(BaseModel):
+    label: str
+    value: str
+
+
 class ValidationIssueOut(BaseModel):
     rule: str
     field: Optional[str] = None
@@ -29,6 +34,7 @@ class DocumentSummary(BaseModel):
     source_filename: str
     doc_type: Optional[str] = None  # null until the document is structured
     classification_confidence: Optional[float] = None
+    document_kind: Optional[str] = None  # "receipt", "utility bill", "email", ...
     status: str
     vendor_name: Optional[str] = None
     invoice_number: Optional[str] = None
@@ -49,6 +55,7 @@ class DocumentDetail(DocumentSummary):
     subtotal: Optional[float] = None
     tax: Optional[float] = None
     line_items: list[LineItemOut] = []
+    additional_fields: list[AdditionalFieldOut] = []
     field_meta: dict[str, Any] = {}
 
 
