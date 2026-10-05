@@ -51,6 +51,7 @@ sample_data/
 manual_test_pdfs/
   test_invoice_*.pdf    # plain invoices for ad hoc manual pipeline testing
   reference_values.json  # expected field values for those PDFs (not eval fixtures)
+sample_messy_invoices/  # real-world-style messy invoices (letter, email, cluttered scan) + what was extracted
 scripts/
   generate_sample_data.py       # convenience CLI wrapper for stage 1
   generate_manual_test_pdfs.py  # generates the manual_test_pdfs/ set
