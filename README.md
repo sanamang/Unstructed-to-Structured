@@ -13,7 +13,7 @@ Built as a staged project. Each stage is independently runnable and testable.
 
 ## Stack
 
-- Python 3.11+, FastAPI, SQLAlchemy + Postgres, Pydantic
+- Python 3.11+, FastAPI, SQLAlchemy + Postgres, Pydantic, Docker
 - Anthropic Python SDK (Claude, vision input) for extraction
 - reportlab for synthetic sample invoice generation, PyMuPDF/Pillow/numpy for
   scanned-document simulation
